@@ -14,6 +14,8 @@ import org.openqa.selenium.remote.UselessFileDetector;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
 
@@ -58,12 +60,17 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
     private Capabilities createFireFox(DesiredCapabilities capabilities, String language, boolean headlessEnabled) {
         FirefoxOptions firefoxOptions = new FirefoxOptions();
         FirefoxProfile profile = new FirefoxProfile();
-        firefoxOptions.setProfile(profile);
-
         //配置浏览器语言
         if (StringUtils.isNotBlank(language)) {
+            //support linux config
+            profile.setPreference("intl.accept_languages", language);
+
+            //support windows config
             firefoxOptions.addArguments(String.format("--lang=%s", language));
         }
+        firefoxOptions.setProfile(profile);
+
+
         //开启无头模式
         if (headlessEnabled) {
             firefoxOptions.addArguments(new String[]{"--headless"});
@@ -96,6 +103,12 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
         ChromeOptions chromeOptions = new ChromeOptions();
         //设置浏览器语言
         if (StringUtils.isNotBlank(language)) {
+            //support linux config
+            Map<String, Object> prefs = new HashMap<>();
+            prefs.put("intl.accept_languages", language);
+            chromeOptions.setExperimentalOption("prefs", prefs);
+
+            //support windows config
             chromeOptions.addArguments(String.format("--lang=%s", language));
         }
         //开启无头模式
