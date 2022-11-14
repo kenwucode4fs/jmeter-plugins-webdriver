@@ -94,7 +94,8 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
         if (this.isVNCEnabled()) {
             firefoxOptions.setCapability("enableVNC", true);
         }
-
+        // 忽略与证书相关的错误
+        firefoxOptions.addArguments("--ignore-certificate-errors");
         capabilities.setCapability(FirefoxOptions.FIREFOX_OPTIONS, firefoxOptions);
         return capabilities;
     }
@@ -134,7 +135,8 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
         if (this.isVNCEnabled()) {
             chromeOptions.setCapability("enableVNC", true);
         }
-
+        // 忽略与证书相关的错误
+        chromeOptions.addArguments("--ignore-certificate-errors");
         capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);
         return capabilities;
     }
