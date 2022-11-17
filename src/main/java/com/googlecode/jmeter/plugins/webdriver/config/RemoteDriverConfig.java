@@ -73,7 +73,7 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
 
         //开启无头模式
         if (headlessEnabled) {
-            firefoxOptions.addArguments(new String[]{"--headless"});
+            firefoxOptions.addArguments(new String[]{"--headless", "--ignore-certificate-errors"});
             capabilities.setCapability(FirefoxOptions.FIREFOX_OPTIONS, firefoxOptions);
             return capabilities;
         }
@@ -114,7 +114,7 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
         }
         //开启无头模式
         if (headlessEnabled) {
-            chromeOptions.addArguments(new String[]{"--headless"});
+            chromeOptions.addArguments(new String[]{"--headless", "--ignore-certificate-errors"});
             capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);
             return capabilities;
         }
