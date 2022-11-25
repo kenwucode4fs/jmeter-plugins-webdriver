@@ -108,6 +108,7 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
             Map<String, Object> prefs = new HashMap<>();
             prefs.put("intl.accept_languages", language);
             chromeOptions.setExperimentalOption("prefs", prefs);
+            chromeOptions.addArguments(String.format("-lang=%s", language));
 
             //support windows config
             chromeOptions.addArguments(String.format("--lang=%s", language));
