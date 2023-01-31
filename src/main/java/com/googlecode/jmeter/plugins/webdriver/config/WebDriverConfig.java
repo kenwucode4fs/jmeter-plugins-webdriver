@@ -34,38 +34,38 @@ import com.googlecode.jmeter.plugins.webdriver.proxy.ProxyType;
 import kg.apc.jmeter.JMeterPluginsUtils;
 
 public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestElement
-		implements LoopIterationListener, ThreadListener {
+        implements LoopIterationListener, ThreadListener {
 
-	private static final long serialVersionUID = 100L;
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebDriverConfig.class);
+    private static final long serialVersionUID = 100L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebDriverConfig.class);
 
-	/**
-	 * This is the key used to store a WebDriver instance in the
-	 * {@link org.apache.jmeter.threads.JMeterVariables} object.
-	 */
-	public static final String BROWSER = "Browser";
+    /**
+     * This is the key used to store a WebDriver instance in the
+     * {@link org.apache.jmeter.threads.JMeterVariables} object.
+     */
+    public static final String BROWSER = "Browser";
 
-	// Constants for shared settings
-	private static final String DRIVER_PATH = "WebDriverConfig.driver_path";
-	private static final String ACCEPT_INSECURE_CERTS = "WebDriverConfig.acceptinsecurecerts";
+    // Constants for shared settings
+    private static final String DRIVER_PATH = "WebDriverConfig.driver_path";
+    private static final String ACCEPT_INSECURE_CERTS = "WebDriverConfig.acceptinsecurecerts";
     private static final String ENABLE_HEADLESS = "WebDriverConfig.headless";
-	private static final String MAXIMIZE_WINDOW = "WebDriverConfig.maximize_browser";
+    private static final String MAXIMIZE_WINDOW = "WebDriverConfig.maximize_browser";
 
-	/*
-	 * THE FOLLOWING CONFIGS ARE EXPERIMENTAL AND ARE SUBJECT TO CHANGE/REMOVAL.
-	 */
-	private static final String RECREATE_ON_ITERATION_START = "WebDriverConfig.reset_per_iteration";
-	private static final String DEV_MODE = "WebDriverConfig.dev_mode";
+    /*
+     * THE FOLLOWING CONFIGS ARE EXPERIMENTAL AND ARE SUBJECT TO CHANGE/REMOVAL.
+     */
+    private static final String RECREATE_ON_ITERATION_START = "WebDriverConfig.reset_per_iteration";
+    private static final String DEV_MODE = "WebDriverConfig.dev_mode";
 
-	// Constants for Chrome
-	private static final String CHROME_ADDITIONAL_ARGS = "ChromeDriverConfig.additional_args";
-	private static final String CHROME_BINARY_PATH = "ChromeDriverConfig.binary_path";
+    // Constants for Chrome
+    private static final String CHROME_ADDITIONAL_ARGS = "ChromeDriverConfig.additional_args";
+    private static final String CHROME_BINARY_PATH = "ChromeDriverConfig.binary_path";
 
-	// Constants for Edge
-	private static final String EDGE_ADDITIONAL_ARGS = "EdgeDriverConfig.additional_args";
-	private static final String EDGE_BINARY_PATH = "EdgeDriverConfig.binary_path";
+    // Constants for Edge
+    private static final String EDGE_ADDITIONAL_ARGS = "EdgeDriverConfig.additional_args";
+    private static final String EDGE_BINARY_PATH = "EdgeDriverConfig.binary_path";
 
-	// Constants for Firefox
+    // Constants for Firefox
     private static final String GENERAL_USERAGENT_OVERRIDE = "FirefoxDriverConfig.general.useragent.override";
     private static final String ENABLE_USERAGENT_OVERRIDE = "FirefoxDriverConfig.general.useragent.override.enabled";
     private static final String ENABLE_NTML = "FirefoxDriverConfig.network.negotiate-auth.allow-insecure-ntlm-v1";
@@ -77,260 +77,290 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     private static final String ENSURE_CLEAN_SESSION = "InternetExplorerDriverConfig.ensure_clean_session";
     private static final String IGNORE_PROTECTED_MODE = "InternetExplorerDriverConfig.ignore_protected_mode";
     private static final String SILENT = "InternetExplorerDriverConfig.silent";
-	private static final String INITIAL_IE_URL = "InternetExplorerDriverConfig.initial_browser_url";
+    private static final String INITIAL_IE_URL = "InternetExplorerDriverConfig.initial_browser_url";
 
-	// Constants for Proxy
-	private static final String PROXY_PAC_URL = "WebDriverConfig.proxy_pac_url";
-	private static final String HTTP_HOST = "WebDriverConfig.http_host";
-	private static final String HTTP_PORT = "WebDriverConfig.http_port";
-	private static final String USE_HTTP_FOR_ALL_PROTOCOLS = "WebDriverConfig.use_http_for_all_protocols";
-	private static final String HTTPS_HOST = "WebDriverConfig.https_host";
-	private static final String HTTPS_PORT = "WebDriverConfig.https_port";
-	private static final String FTP_HOST = "WebDriverConfig.ftp_host";
-	private static final String FTP_PORT = "WebDriverConfig.ftp_port";
-	private static final String SOCKS_HOST = "WebDriverConfig.socks_host";
-	private static final String SOCKS_PORT = "WebDriverConfig.socks_port";
-	private static final String NO_PROXY = "WebDriverConfig.no_proxy";
-	private static final String PROXY_TYPE = "WebDriverConfig.proxy_type";
+    // Constants for Proxy
+    private static final String PROXY_PAC_URL = "WebDriverConfig.proxy_pac_url";
+    private static final String HTTP_HOST = "WebDriverConfig.http_host";
+    private static final String HTTP_PORT = "WebDriverConfig.http_port";
+    private static final String USE_HTTP_FOR_ALL_PROTOCOLS = "WebDriverConfig.use_http_for_all_protocols";
+    private static final String HTTPS_HOST = "WebDriverConfig.https_host";
+    private static final String HTTPS_PORT = "WebDriverConfig.https_port";
+    private static final String FTP_HOST = "WebDriverConfig.ftp_host";
+    private static final String FTP_PORT = "WebDriverConfig.ftp_port";
+    private static final String SOCKS_HOST = "WebDriverConfig.socks_host";
+    private static final String SOCKS_PORT = "WebDriverConfig.socks_port";
+    private static final String NO_PROXY = "WebDriverConfig.no_proxy";
+    private static final String PROXY_TYPE = "WebDriverConfig.proxy_type";
 
-	/**
-	 * Ideally we would have stored the WebDriver instances in the JMeterVariables
-	 * object, however the JMeterVariables is cleared BEFORE threadFinished()
-	 * callback is called (hence would never be able to quit the WebDriver).
-	 */
-	// PATCH: Added changes to stow the WebDriver in both places, regardless. This
-	// is so other samplers who might
-	// be interested in leveraging the WebDriver instance can get a handle to it
-	// without too much trouble.
-	private static final Map<String, WebDriver> webdrivers = new ConcurrentHashMap<String, WebDriver>();
-	Map<String, WebDriver> getThreadBrowsers() {
-		return webdrivers;
-	}
-	void clearThreadBrowsers() {
-		webdrivers.clear();
-	}
-	protected T getThreadBrowser() {
-		return (T) webdrivers.get(currentThreadName());
-	}
-	protected T removeThreadBrowser() {
-		return (T) webdrivers.remove(currentThreadName());
-	}
+    /**
+     * Ideally we would have stored the WebDriver instances in the JMeterVariables
+     * object, however the JMeterVariables is cleared BEFORE threadFinished()
+     * callback is called (hence would never be able to quit the WebDriver).
+     */
+    // PATCH: Added changes to stow the WebDriver in both places, regardless. This
+    // is so other samplers who might
+    // be interested in leveraging the WebDriver instance can get a handle to it
+    // without too much trouble.
+    private static final Map<String, WebDriver> webdrivers = new ConcurrentHashMap<String, WebDriver>();
+
+    Map<String, WebDriver> getThreadBrowsers() {
+        return webdrivers;
+    }
+
+    void clearThreadBrowsers() {
+        webdrivers.clear();
+    }
+
+    protected T getThreadBrowser() {
+        return (T) webdrivers.get(currentThreadName());
+    }
+
+    protected T removeThreadBrowser() {
+        return (T) webdrivers.remove(currentThreadName());
+    }
 
 
-	private static String browserName;
-	public static void setBrowserName(String name) {
-		browserName = name;
-	}
-	public static String getBrowserName() {
-		return browserName;
-	}
+    private static String browserName;
 
-	private final transient ProxyFactory proxyFactory;
-	protected WebDriverConfig() {
-		this(ProxyFactory.getInstance());
-	}
-	protected WebDriverConfig(ProxyFactory proxyFactory) {
-		this.proxyFactory = proxyFactory;
-	}
+    public static void setBrowserName(String name) {
+        browserName = name;
+    }
 
-	@Override
-	public void threadStarted() {
-		// don't create new browser if there is one there already
-		if (hasThreadBrowser()) {
-			LOGGER.warn("Thread: " + currentThreadName() + " already has a WebDriver(" + getThreadBrowser()
-					+ ") associated with it. ThreadGroup can only contain a single WebDriverConfig.");
-			return;
-		}
+    public static String getBrowserName() {
+        return browserName;
+    }
 
-		// create new browser instance
-		final T browser = getPreparedBrowser();
-		setThreadBrowser(browser);
+    private final transient ProxyFactory proxyFactory;
 
-		// ensures the browser will quit when JVM exits (especially important in
-		// devMode)
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				quitBrowser(browser);
-			}
-		});
-	}
+    protected WebDriverConfig() {
+        this(ProxyFactory.getInstance());
+    }
 
-	protected boolean hasThreadBrowser() {
-		if (webdrivers.containsKey(currentThreadName())) {
-			WebDriver browser = webdrivers.get(currentThreadName());
-			try {
-				browser.getCurrentUrl();
-				return true;
-			} catch (Exception ex) {
-				LOGGER.warn("Old browser object is inaccessible, will create new", ex);
-				webdrivers.remove(currentThreadName());
-			}
-		}
-		return false;
-	}
+    protected WebDriverConfig(ProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
+    }
 
-	protected void setThreadBrowser(T browser) {
-		if (browser != null) {
-			webdrivers.put(currentThreadName(), browser);
-			// Make sure we stow the object in both places, in case someone wants a copy
-			if (getThreadContext().getVariables() != null) {
-				getThreadContext().getVariables().putObject(WebDriverConfig.BROWSER, browser);
-			}
-		}
-	}
+    @Override
+    public void threadStarted() {
+        // don't create new browser if there is one there already
+        if (hasThreadBrowser()) {
+            LOGGER.warn("Thread: " + currentThreadName() + " already has a WebDriver(" + getThreadBrowser()
+                    + ") associated with it. ThreadGroup can only contain a single WebDriverConfig.");
+            return;
+        }
 
-	protected String currentThreadName() {
-		return Thread.currentThread().getName();
-	}
+        // create new browser instance
+        final T browser = getPreparedBrowser();
+        setThreadBrowser(browser);
 
-	@Override
-	public void iterationStart(LoopIterationEvent loopIterationEvent) {
-		if (isRecreateBrowserOnIterationStart() && !isDevMode()) {
-			final T browser = getThreadBrowser();
-			quitBrowser(browser);
-			setThreadBrowser(getPreparedBrowser());
-			LOGGER.info("Created browser object: " + browser);
-		}
-	}
+        // ensures the browser will quit when JVM exits (especially important in
+        // devMode)
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                quitBrowser(browser);
+            }
+        });
+    }
 
-	/**
-	 * Quits browser at the end of the tests. This will be envoked per
-	 * thread/browser instance created.
-	 *
-	 * @param browser is the browser instance to quit. Will not quit if argument is
-	 *                null.
-	 */
-	protected void quitBrowser(final T browser) {
-		if (browser != null) {
-			try {
-				browser.quit();
-			} catch (SessionNotCreatedException e) {
-				LOGGER.warn("Attempting to quit browser instance that has already exited.");
-			}
-		}
-	}
+    protected boolean hasThreadBrowser() {
+        if (webdrivers.containsKey(currentThreadName())) {
+            WebDriver browser = webdrivers.get(currentThreadName());
+            try {
+                browser.getCurrentUrl();
+                return true;
+            } catch (Exception ex) {
+                LOGGER.warn("Old browser object is inaccessible, will create new", ex);
+                webdrivers.remove(currentThreadName());
+            }
+        }
+        return false;
+    }
 
-	private T getPreparedBrowser() {
-		T browser = createBrowser();
-		if ((isBrowserMaximized()) && ((getBrowserName() == "firefox") || (getBrowserName() == "internet explorer"))) {
-			browser.manage().window().maximize();
-		}
-		return browser;
-	}
+    protected void setThreadBrowser(T browser) {
+        if (browser != null) {
+            webdrivers.put(currentThreadName(), browser);
+            // Make sure we stow the object in both places, in case someone wants a copy
+            if (getThreadContext().getVariables() != null) {
+                getThreadContext().getVariables().putObject(WebDriverConfig.BROWSER, browser);
+            }
+        }
+    }
 
-	/**
-	 * Creates a new browser at the start of the tests. This method will always
-	 * return a new instance of a {@link WebDriver} class and is called per thread.
-	 *
-	 * @return a new {@link WebDriver} object.
-	 */
-	protected abstract T createBrowser();
+    protected String currentThreadName() {
+        return Thread.currentThread().getName();
+    }
 
-	/**
-	 * Call this method to create a {@link Proxy} instance for use when creating a
-	 * {@link org.openqa.selenium.WebDriver} instance. The values/settings of the
-	 * proxy depends entirely on the values set on this config instance.
-	 *
-	 * @return a {@link Proxy}
-	 */
-	public Proxy createProxy() {
-		switch (getProxyType()) {
-		case PROXY_PAC:
-			return proxyFactory.getConfigUrlProxy(getProxyPacUrl());
-		case DIRECT:
-			return proxyFactory.getDirectProxy();
-		case AUTO_DETECT:
-			return proxyFactory.getAutodetectProxy();
-		case MANUAL:
-			if (isUseHttpSettingsForAllProtocols()) {
-				ProxyHostPort proxy = new ProxyHostPort(getHttpHost(), getHttpPort());
-				return proxyFactory.getManualProxy(proxy, proxy, proxy, proxy, getNoProxyHost());
-			}
-			ProxyHostPort http = new ProxyHostPort(getHttpHost(), getHttpPort());
-			ProxyHostPort https = new ProxyHostPort(getHttpsHost(), getHttpsPort());
-			ProxyHostPort ftp = new ProxyHostPort(getFtpHost(), getFtpPort());
-			ProxyHostPort socks = new ProxyHostPort(getSocksHost(), getSocksPort());
-			return proxyFactory.getManualProxy(http, https, ftp, socks, getNoProxyHost());
-		default:
-			return proxyFactory.getSystemProxy();
-		}
-	}
+    @Override
+    public void iterationStart(LoopIterationEvent loopIterationEvent) {
+        if (isRecreateBrowserOnIterationStart() && !isDevMode()) {
+            final T browser = getThreadBrowser();
+            quitBrowser(browser);
+            setThreadBrowser(getPreparedBrowser());
+            LOGGER.info("Created browser object: " + browser);
+        }
+    }
 
-	@Override
-	public void threadFinished() {
-		if (!isDevMode()) {
-			final T browser = removeThreadBrowser();
-			quitBrowser(browser);
-		}
-	}
+    /**
+     * Quits browser at the end of the tests. This will be envoked per
+     * thread/browser instance created.
+     *
+     * @param browser is the browser instance to quit. Will not quit if argument is
+     *                null.
+     */
+    protected void quitBrowser(final T browser) {
+        if (browser != null) {
+            try {
+                browser.quit();
+            } catch (SessionNotCreatedException e) {
+                LOGGER.warn("Attempting to quit browser instance that has already exited.");
+            }
+        }
+    }
 
-	protected ChromeOptions createChromeOptions() {
-		ChromeOptions options = new ChromeOptions();
+    private T getPreparedBrowser() {
+        T browser = createBrowser();
+        if ((isBrowserMaximized()) && ((getBrowserName() == "firefox") || (getBrowserName() == "internet explorer"))) {
+            browser.manage().window().maximize();
+        }
+        return browser;
+    }
 
-		// Custom Chrome capabilities
-		// Arguments
-		if (isBrowserMaximized()) {
-			options.addArguments("--start-maximized");
-		}
+    /**
+     * Creates a new browser at the start of the tests. This method will always
+     * return a new instance of a {@link WebDriver} class and is called per thread.
+     *
+     * @return a new {@link WebDriver} object.
+     */
+    protected abstract T createBrowser();
+
+    /**
+     * Call this method to create a {@link Proxy} instance for use when creating a
+     * {@link org.openqa.selenium.WebDriver} instance. The values/settings of the
+     * proxy depends entirely on the values set on this config instance.
+     *
+     * @return a {@link Proxy}
+     */
+    public Proxy createProxy() {
+        switch (getProxyType()) {
+            case PROXY_PAC:
+                return proxyFactory.getConfigUrlProxy(getProxyPacUrl());
+            case DIRECT:
+                return proxyFactory.getDirectProxy();
+            case AUTO_DETECT:
+                return proxyFactory.getAutodetectProxy();
+            case MANUAL:
+                if (isUseHttpSettingsForAllProtocols()) {
+                    ProxyHostPort proxy = new ProxyHostPort(getHttpHost(), getHttpPort());
+                    return proxyFactory.getManualProxy(proxy, proxy, proxy, proxy, getNoProxyHost());
+                }
+                ProxyHostPort http = new ProxyHostPort(getHttpHost(), getHttpPort());
+                ProxyHostPort https = new ProxyHostPort(getHttpsHost(), getHttpsPort());
+                ProxyHostPort ftp = new ProxyHostPort(getFtpHost(), getFtpPort());
+                ProxyHostPort socks = new ProxyHostPort(getSocksHost(), getSocksPort());
+                return proxyFactory.getManualProxy(http, https, ftp, socks, getNoProxyHost());
+            default:
+                return proxyFactory.getSystemProxy();
+        }
+    }
+
+    @Override
+    public void threadFinished() {
+        if (!isDevMode()) {
+            final T browser = removeThreadBrowser();
+            quitBrowser(browser);
+        }
+    }
+
+    protected ChromeOptions createChromeOptions(CustomBrowserConfig customBrowserConfig) {
+        ChromeOptions options = createChromeOptions();
+        options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
+        options.setHeadless(customBrowserConfig.isHeadless());
+        options.addArguments("--enable-logging --v=1");
+        return options;
+    }
+
+    protected ChromeOptions createChromeOptions() {
+        ChromeOptions options = new ChromeOptions();
+
+        // Custom Chrome capabilities
+        // Arguments
+        if (isBrowserMaximized()) {
+            options.addArguments("--start-maximized");
+        }
         options.setHeadless(isHeadless());
 
-		String additionalArgs = trimmed(getChromeAdditionalArgs());
-		if (null != additionalArgs && !additionalArgs.isEmpty()) {
-			options.addArguments(additionalArgs.split("\\s+"));
-		}
+        String additionalArgs = trimmed(getChromeAdditionalArgs());
+        if (null != additionalArgs && !additionalArgs.isEmpty()) {
+            options.addArguments(additionalArgs.split("\\s+"));
+        }
 
-		// Starting browser in a specified location
-		String binaryPath = trimmed(getChromeBinaryPath());
-		if (null != binaryPath && !binaryPath.isEmpty()) {
-			options.setBinary(binaryPath);
-		}
+        // Starting browser in a specified location
+        String binaryPath = trimmed(getChromeBinaryPath());
+        if (null != binaryPath && !binaryPath.isEmpty()) {
+            options.setBinary(binaryPath);
+        }
+        // 忽略与证书相关的错误
+        options.addArguments("--ignore-certificate-errors");
+        // Capabilities shared by all browsers
+        setSharedCaps(options);
 
-		// Capabilities shared by all browsers
-		setSharedCaps(options);
+        return options;
+    }
 
-		return options;
-	}
+    protected EdgeOptions createEdgeOptions() {
+        EdgeOptions options = new EdgeOptions();
 
-	protected EdgeOptions createEdgeOptions() {
-		EdgeOptions options = new EdgeOptions();
-
-		// Custom Edge capabilities
-		// Arguments
-		if (isBrowserMaximized()) {
-			options.addArguments("--start-maximized");
-		}
+        // Custom Edge capabilities
+        // Arguments
+        if (isBrowserMaximized()) {
+            options.addArguments("--start-maximized");
+        }
         options.setHeadless(isHeadless());
 
-		String additionalArgs = trimmed(getEdgeAdditionalArgs());
-		if (null != additionalArgs && !additionalArgs.isEmpty()) {
-			options.addArguments(additionalArgs.split("\\s+"));
-		}
+        String additionalArgs = trimmed(getEdgeAdditionalArgs());
+        if (null != additionalArgs && !additionalArgs.isEmpty()) {
+            options.addArguments(additionalArgs.split("\\s+"));
+        }
 
-		// Starting browser in a specified location
-		String binaryPath = trimmed(getEdgeBinaryPath());
-		if (null != binaryPath && !binaryPath.isEmpty()) {
-			options.setBinary(binaryPath);
-		}
+        // Starting browser in a specified location
+        String binaryPath = trimmed(getEdgeBinaryPath());
+        if (null != binaryPath && !binaryPath.isEmpty()) {
+            options.setBinary(binaryPath);
+        }
 
-		// Capabilities shared by all browsers
-		setSharedCaps(options);
+        // Capabilities shared by all browsers
+        setSharedCaps(options);
 
-		return options;
-	}
+        return options;
+    }
 
-	protected FirefoxOptions createFirefoxOptions() {
-		FirefoxOptions options = new FirefoxOptions();
+    protected EdgeOptions createEdgeOptions(CustomBrowserConfig customBrowserConfig) {
+        EdgeOptions options = createEdgeOptions();
+        return options;
+    }
 
-		// Custom Firefox capabilities
+    protected FirefoxOptions createFirefoxOptions() {
+        FirefoxOptions options = new FirefoxOptions();
+
+        // Custom Firefox capabilities
         options.setHeadless(isHeadless());
         options.setProfile(createProfile());
+        // 忽略与证书相关的错误
+        options.addArguments("--ignore-certificate-errors");
+        // Capabilities shared by all browsers
+        setSharedCaps(options);
 
-		// Capabilities shared by all browsers
-		setSharedCaps(options);
+        return options;
+    }
 
-		return options;
-	}
+    protected FirefoxOptions createFirefoxOptions(CustomBrowserConfig customBrowserConfig) {
+        FirefoxOptions options = createFirefoxOptions();
+        options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
+        options.setHeadless(customBrowserConfig.isHeadless());
+        return options;
+    }
 
     private FirefoxProfile createProfile() {
         FirefoxProfile profile = new FirefoxProfile();
@@ -416,169 +446,197 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         return options;
     }
 
-	public void setSharedCaps(AbstractDriverOptions<?> caps) {
-	    // Capabilities shared by all browsers
-		caps.setAcceptInsecureCerts(isAcceptInsecureCerts());
-		caps.setProxy(createProxy());
-	}
+    InternetExplorerOptions createIEOptions(CustomBrowserConfig customBrowserConfig) {
+        InternetExplorerOptions options = createIEOptions();
+        return options;
+    }
 
-	public String getChromeBinaryPath() {
-		return getPropertyAsString(CHROME_BINARY_PATH);
-	}
-	public void setChromeBinaryPath(String binaryPath) {
-		setProperty(CHROME_BINARY_PATH, binaryPath);
-	}
+    public void setSharedCaps(AbstractDriverOptions<?> caps) {
+        // Capabilities shared by all browsers
+        caps.setAcceptInsecureCerts(isAcceptInsecureCerts());
+        caps.setProxy(createProxy());
+    }
 
-	public String getEdgeBinaryPath() {
-		return getPropertyAsString(EDGE_BINARY_PATH);
-	}
-	public void setEdgeBinaryPath(String binaryPath) {
-		setProperty(EDGE_BINARY_PATH, binaryPath);
-	}
+    public String getChromeBinaryPath() {
+        return getPropertyAsString(CHROME_BINARY_PATH);
+    }
 
-	public String getDriverPath() {
-		return getPropertyAsString(DRIVER_PATH);
-	}
-	public void setDriverPath(String path) {
-		setProperty(DRIVER_PATH, path);
-	}
+    public void setChromeBinaryPath(String binaryPath) {
+        setProperty(CHROME_BINARY_PATH, binaryPath);
+    }
 
-	public String getChromeAdditionalArgs() {
-		return getPropertyAsString(CHROME_ADDITIONAL_ARGS);
-	}
-	public void setChromeAdditionalArgs(String additionalArgs) {
-		setProperty(CHROME_ADDITIONAL_ARGS, additionalArgs);
-	}
+    public String getEdgeBinaryPath() {
+        return getPropertyAsString(EDGE_BINARY_PATH);
+    }
 
-	public String getEdgeAdditionalArgs() {
-		return getPropertyAsString(EDGE_ADDITIONAL_ARGS);
-	}
-	public void setEdgeAdditionalArgs(String additionalArgs) {
-		setProperty(EDGE_ADDITIONAL_ARGS, additionalArgs);
-	}
+    public void setEdgeBinaryPath(String binaryPath) {
+        setProperty(EDGE_BINARY_PATH, binaryPath);
+    }
 
-	public String getFtpHost() {
-		return getPropertyAsString(FTP_HOST);
-	}
-	public void setFtpHost(String host) {
-		setProperty(FTP_HOST, host);
-	}
+    public String getDriverPath() {
+        return getPropertyAsString(DRIVER_PATH);
+    }
 
-	public int getFtpPort() {
-		return getPropertyAsInt(FTP_PORT);
-	}
-	public void setFtpPort(int port) {
-		setProperty(FTP_PORT, port);
-	}
+    public void setDriverPath(String path) {
+        setProperty(DRIVER_PATH, path);
+    }
 
-	public String getHttpHost() {
-		return getPropertyAsString(HTTP_HOST);
-	}
-	public void setHttpHost(String host) {
-		setProperty(HTTP_HOST, host);
-	}
+    public String getChromeAdditionalArgs() {
+        return getPropertyAsString(CHROME_ADDITIONAL_ARGS);
+    }
 
-	public int getHttpPort() {
-		return getPropertyAsInt(HTTP_PORT);
-	}
-	public void setHttpPort(int port) {
-		setProperty(HTTP_PORT, port);
-	}
+    public void setChromeAdditionalArgs(String additionalArgs) {
+        setProperty(CHROME_ADDITIONAL_ARGS, additionalArgs);
+    }
 
-	public String getHttpsHost() {
-		return getPropertyAsString(HTTPS_HOST);
-	}
-	public void setHttpsHost(String httpsHost) {
-		setProperty(HTTPS_HOST, httpsHost);
-	}
+    public String getEdgeAdditionalArgs() {
+        return getPropertyAsString(EDGE_ADDITIONAL_ARGS);
+    }
 
-	public int getHttpsPort() {
-		return getPropertyAsInt(HTTPS_PORT);
-	}
-	public void setHttpsPort(int port) {
-		setProperty(HTTPS_PORT, port);
-	}
+    public void setEdgeAdditionalArgs(String additionalArgs) {
+        setProperty(EDGE_ADDITIONAL_ARGS, additionalArgs);
+    }
 
-	public String getNoProxyHost() {
-		return getPropertyAsString(NO_PROXY);
-	}
-	public void setNoProxyHost(String noProxyHostList) {
-		setProperty(NO_PROXY, noProxyHostList);
-	}
+    public String getFtpHost() {
+        return getPropertyAsString(FTP_HOST);
+    }
 
-	public String getProxyPacUrl() {
-		return getPropertyAsString(PROXY_PAC_URL);
-	}
-	public void setProxyPacUrl(String pacUrl) {
-		setProperty(PROXY_PAC_URL, pacUrl);
-	}
+    public void setFtpHost(String host) {
+        setProperty(FTP_HOST, host);
+    }
 
-	public ProxyType getProxyType() {
-		return ProxyType.valueOf(getPropertyAsString(PROXY_TYPE, ProxyType.SYSTEM.name()));
-	}
-	public void setProxyType(ProxyType type) {
-		setProperty(PROXY_TYPE, type.name());
-	}
+    public int getFtpPort() {
+        return getPropertyAsInt(FTP_PORT);
+    }
 
-	public String getSocksHost() {
-		return getPropertyAsString(SOCKS_HOST);
-	}
-	public void setSocksHost(String host) {
-		setProperty(SOCKS_HOST, host);
-	}
+    public void setFtpPort(int port) {
+        setProperty(FTP_PORT, port);
+    }
 
-	public int getSocksPort() {
-		return getPropertyAsInt(SOCKS_PORT);
-	}
-	public void setSocksPort(int port) {
-		setProperty(SOCKS_PORT, port);
-	}
+    public String getHttpHost() {
+        return getPropertyAsString(HTTP_HOST);
+    }
 
-	public boolean isAcceptInsecureCerts() {
-		return getPropertyAsBoolean(ACCEPT_INSECURE_CERTS);
-	}
-	public void setAcceptInsecureCerts(boolean enabled) {
-		setProperty(ACCEPT_INSECURE_CERTS, enabled);
-	}
+    public void setHttpHost(String host) {
+        setProperty(HTTP_HOST, host);
+    }
 
-	public boolean isUseHttpSettingsForAllProtocols() {
-		return getPropertyAsBoolean(USE_HTTP_FOR_ALL_PROTOCOLS, true);
-	}
-	public void setUseHttpSettingsForAllProtocols(boolean override) {
-		setProperty(USE_HTTP_FOR_ALL_PROTOCOLS, override);
-	}
+    public int getHttpPort() {
+        return getPropertyAsInt(HTTP_PORT);
+    }
+
+    public void setHttpPort(int port) {
+        setProperty(HTTP_PORT, port);
+    }
+
+    public String getHttpsHost() {
+        return getPropertyAsString(HTTPS_HOST);
+    }
+
+    public void setHttpsHost(String httpsHost) {
+        setProperty(HTTPS_HOST, httpsHost);
+    }
+
+    public int getHttpsPort() {
+        return getPropertyAsInt(HTTPS_PORT);
+    }
+
+    public void setHttpsPort(int port) {
+        setProperty(HTTPS_PORT, port);
+    }
+
+    public String getNoProxyHost() {
+        return getPropertyAsString(NO_PROXY);
+    }
+
+    public void setNoProxyHost(String noProxyHostList) {
+        setProperty(NO_PROXY, noProxyHostList);
+    }
+
+    public String getProxyPacUrl() {
+        return getPropertyAsString(PROXY_PAC_URL);
+    }
+
+    public void setProxyPacUrl(String pacUrl) {
+        setProperty(PROXY_PAC_URL, pacUrl);
+    }
+
+    public ProxyType getProxyType() {
+        return ProxyType.valueOf(getPropertyAsString(PROXY_TYPE, ProxyType.SYSTEM.name()));
+    }
+
+    public void setProxyType(ProxyType type) {
+        setProperty(PROXY_TYPE, type.name());
+    }
+
+    public String getSocksHost() {
+        return getPropertyAsString(SOCKS_HOST);
+    }
+
+    public void setSocksHost(String host) {
+        setProperty(SOCKS_HOST, host);
+    }
+
+    public int getSocksPort() {
+        return getPropertyAsInt(SOCKS_PORT);
+    }
+
+    public void setSocksPort(int port) {
+        setProperty(SOCKS_PORT, port);
+    }
+
+    public boolean isAcceptInsecureCerts() {
+        return getPropertyAsBoolean(ACCEPT_INSECURE_CERTS);
+    }
+
+    public void setAcceptInsecureCerts(boolean enabled) {
+        setProperty(ACCEPT_INSECURE_CERTS, enabled);
+    }
+
+    public boolean isUseHttpSettingsForAllProtocols() {
+        return getPropertyAsBoolean(USE_HTTP_FOR_ALL_PROTOCOLS, true);
+    }
+
+    public void setUseHttpSettingsForAllProtocols(boolean override) {
+        setProperty(USE_HTTP_FOR_ALL_PROTOCOLS, override);
+    }
 
     public boolean isHeadless() {
         return getPropertyAsBoolean(ENABLE_HEADLESS);
     }
+
     public void setHeadless(boolean headless) {
         setProperty(ENABLE_HEADLESS, headless);
     }
 
-	public boolean isBrowserMaximized() {
-		return getPropertyAsBoolean(MAXIMIZE_WINDOW, false);
-	}
-	public void setBrowserMaximized(boolean state) {
-		setProperty(MAXIMIZE_WINDOW, state);
-	}
+    public boolean isBrowserMaximized() {
+        return getPropertyAsBoolean(MAXIMIZE_WINDOW, false);
+    }
 
-	public boolean isDevMode() {
-		return getPropertyAsBoolean(DEV_MODE);
-	}
-	public void setDevMode(boolean devMode) {
-		setProperty(DEV_MODE, devMode);
-	}
+    public void setBrowserMaximized(boolean state) {
+        setProperty(MAXIMIZE_WINDOW, state);
+    }
 
-	public boolean isRecreateBrowserOnIterationStart() {
-		return getPropertyAsBoolean(RECREATE_ON_ITERATION_START);
-	}
-	public void setRecreateBrowserOnIterationStart(boolean recreate) {
-		setProperty(RECREATE_ON_ITERATION_START, recreate);
-	}
+    public boolean isDevMode() {
+        return getPropertyAsBoolean(DEV_MODE);
+    }
+
+    public void setDevMode(boolean devMode) {
+        setProperty(DEV_MODE, devMode);
+    }
+
+    public boolean isRecreateBrowserOnIterationStart() {
+        return getPropertyAsBoolean(RECREATE_ON_ITERATION_START);
+    }
+
+    public void setRecreateBrowserOnIterationStart(boolean recreate) {
+        setProperty(RECREATE_ON_ITERATION_START, recreate);
+    }
 
     public boolean isUserAgentOverridden() {
         return getPropertyAsBoolean(ENABLE_USERAGENT_OVERRIDE);
     }
+
     public void setUserAgentOverridden(boolean userAgentOverridden) {
         setProperty(ENABLE_USERAGENT_OVERRIDE, userAgentOverridden);
     }
@@ -586,6 +644,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getUserAgentOverride() {
         return getPropertyAsString(GENERAL_USERAGENT_OVERRIDE);
     }
+
     public void setUserAgentOverride(String userAgent) {
         setProperty(GENERAL_USERAGENT_OVERRIDE, userAgent);
     }
@@ -593,6 +652,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public JMeterProperty getExtensions() {
         return getProperty(EXTENSIONS_TO_LOAD);
     }
+
     public void setExtensions(PowerTableModel model) {
         CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(model, EXTENSIONS_TO_LOAD);
         setProperty(prop);
@@ -601,6 +661,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getNtlmSetting() {
         return getPropertyAsString(ENABLE_NTML);
     }
+
     public void setNtlmSetting(boolean ntlm) {
         setProperty(ENABLE_NTML, ntlm);
     }
@@ -608,6 +669,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public JMeterProperty getPreferences() {
         return getProperty(PREFERENCES);
     }
+
     public void setPreferences(PowerTableModel model) {
         CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(model, PREFERENCES);
         setProperty(prop);
@@ -616,6 +678,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public void setFileUploadDialogTimeout(int timeout) {
         setProperty(FILE_UPLOAD_DIALOG_TIMEOUT, timeout);
     }
+
     public int getFileUploadDialogTimeout() {
         return getPropertyAsInt(FILE_UPLOAD_DIALOG_TIMEOUT);
     }
@@ -623,6 +686,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isEnsureCleanSession() {
         return getPropertyAsBoolean(ENSURE_CLEAN_SESSION, false);
     }
+
     public void setEnsureCleanSession(boolean state) {
         setProperty(ENSURE_CLEAN_SESSION, state);
     }
@@ -630,6 +694,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isIgnoreProtectedMode() {
         return getPropertyAsBoolean(IGNORE_PROTECTED_MODE, false);
     }
+
     public void setIgnoreProtectedMode(boolean state) {
         setProperty(IGNORE_PROTECTED_MODE, state);
     }
@@ -637,18 +702,21 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isSilent() {
         return getPropertyAsBoolean(SILENT, false);
     }
+
     public void setSilent(boolean state) {
         setProperty(SILENT, state);
     }
 
-	public String getInitialIeUrl() {
-		return getPropertyAsString(INITIAL_IE_URL);
-	}
-	public void setInitialIeUrl(String webUrl) {
-		setProperty(INITIAL_IE_URL, webUrl);
-	}
+    public String getInitialIeUrl() {
+        return getPropertyAsString(INITIAL_IE_URL);
+    }
 
-	private String trimmed(String str) {
-		return null == str ? null : str.trim();
-	}
+    public void setInitialIeUrl(String webUrl) {
+        setProperty(INITIAL_IE_URL, webUrl);
+    }
+
+    private String trimmed(String str) {
+        return null == str ? null : str.trim();
+    }
+
 }
