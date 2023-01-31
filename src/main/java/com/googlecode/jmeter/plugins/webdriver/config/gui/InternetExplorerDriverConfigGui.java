@@ -1,21 +1,25 @@
 package com.googlecode.jmeter.plugins.webdriver.config.gui;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
 import kg.apc.jmeter.JMeterPluginsUtils;
 
-import org.apache.jmeter.gui.util.HorizontalPanel;
-import org.apache.jmeter.gui.util.VerticalPanel;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.ItemListener;
+
 import org.apache.jmeter.testelement.TestElement;
 
 import com.googlecode.jmeter.plugins.webdriver.config.InternetExplorerDriverConfig;
+import com.googlecode.jmeter.plugins.webdriver.config.WebDriverConfig;
 
-public class InternetExplorerDriverConfigGui extends WebDriverConfigGui {
+public class InternetExplorerDriverConfigGui extends WebDriverConfigGui implements ItemListener, FocusListener {
 
     private static final long serialVersionUID = 100L;
-    JTextField ieServicePath;
+
+    @Override
+	String browserName() {
+		WebDriverConfig.setBrowserName("internet explorer");
+	    return "internet explorer";
+	}
 
     @Override
     public String getStaticLabel() {
@@ -23,17 +27,23 @@ public class InternetExplorerDriverConfigGui extends WebDriverConfigGui {
     }
 
     @Override
-    public String getLabelResource() {
-        return getClass().getCanonicalName();
+    protected String getWikiPage() {
+        return "DirectDriverConfig";
     }
 
+	@Override
+	protected boolean isBrowser() {
+		return true;
+	}
+
+	@Override
+	protected boolean isProxyEnabled() {
+		return true;
+	}
+
     @Override
-    public void configure(TestElement element) {
-        super.configure(element);
-        if(element instanceof InternetExplorerDriverConfig) {
-            InternetExplorerDriverConfig config = (InternetExplorerDriverConfig)element;
-            ieServicePath.setText(config.getInternetExplorerDriverPath());
-        }
+    public String getLabelResource() {
+        return getClass().getCanonicalName();
     }
 
     @Override
@@ -46,53 +56,29 @@ public class InternetExplorerDriverConfigGui extends WebDriverConfigGui {
     @Override
     public void modifyTestElement(TestElement element) {
         super.modifyTestElement(element);
-        if(element instanceof InternetExplorerDriverConfig) {
-            InternetExplorerDriverConfig config = (InternetExplorerDriverConfig)element;
-            config.setInternetExplorerDriverPath(ieServicePath.getText());
-        }
     }
 
     @Override
     public void clearGui() {
         super.clearGui();
-        ieServicePath.setText("");
     }
 
     @Override
-    protected JPanel createBrowserPanel() {
-        return createServicePanel();
+    public void configure(TestElement element) {
+        super.configure(element);
     }
 
     @Override
-    protected String browserName() {
-        return "Internet Explorer";
-    }
-
-    @Override
-    protected String getWikiPage() {
-        return "InternetExplorerConfig";
-    }
-
-    private JPanel createServicePanel() {
-        final JPanel browserPanel = new VerticalPanel();
-        final JPanel ieServicePanel = new HorizontalPanel();
-        final JLabel ieDriverServiceLabel = new JLabel("Path to Internet Explorer Driver");
-        ieServicePanel.add(ieDriverServiceLabel);
-
-        ieServicePath = new JTextField();
-        ieServicePanel.add(ieServicePath);
-        browserPanel.add(ieServicePanel);
-        return browserPanel;
-    }
-
-	@Override
-	protected boolean isProxyEnabled() {
-		return true;
+	public void focusGained(FocusEvent e) {
+		// Nothing to do
 	}
 
-	@Override
-	protected boolean isExperimentalEnabled() {
-		return true;
+    @Override
+	public void focusLost(FocusEvent e) {
+		if (initialBrowserUrl.equals(e.getComponent()) && !isValidUrl(initialBrowserUrl.getText())) {
+			IEerrorMsg.setText("The URL is malformed");
+		} else {
+			IEerrorMsg.setText("");
+		}
 	}
-
 }

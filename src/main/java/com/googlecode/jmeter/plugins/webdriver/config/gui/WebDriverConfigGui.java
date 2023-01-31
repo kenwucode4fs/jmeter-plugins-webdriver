@@ -1,16 +1,18 @@
 package com.googlecode.jmeter.plugins.webdriver.config.gui;
 
-import com.googlecode.jmeter.plugins.webdriver.config.WebDriverConfig;
-import com.googlecode.jmeter.plugins.webdriver.proxy.ProxyType;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Font;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.NumberFormat;
+
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,366 +20,702 @@ import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import kg.apc.jmeter.JMeterPluginsUtils;
+
 import org.apache.jmeter.config.gui.AbstractConfigGui;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.testelement.TestElement;
+import org.apache.jmeter.testelement.property.CollectionProperty;
+import org.apache.jmeter.testelement.property.JMeterProperty;
+import org.apache.jmeter.testelement.property.NullProperty;
+
+import com.googlecode.jmeter.plugins.webdriver.config.RemoteCapability;
+import com.googlecode.jmeter.plugins.webdriver.config.WebDriverConfig;
+import com.googlecode.jmeter.plugins.webdriver.proxy.ProxyType;
+
+import kg.apc.jmeter.JMeterPluginsUtils;
+import kg.apc.jmeter.gui.Grid;
 
 public abstract class WebDriverConfigGui extends AbstractConfigGui implements ItemListener {
 
-    private static final long serialVersionUID = 100L;
-    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
-    private static final int PROXY_FIELD_INDENT = 28;
-    private static final int DEFAULT_PROXY_PORT = 8080;
-    private static final String DEFAULT_NO_PROXY_LIST = "localhost";
+	private static final long serialVersionUID = 100L;
 
-    static {
-        NUMBER_FORMAT.setGroupingUsed(false);
-    }
+    private static final int Default_FileUploadDialogTimeout = 1000;
 
-    JRadioButton directProxy; // synonymous with no proxy
+	private static final String DEFAULT_NO_PROXY_LIST = "localhost";
+	private static final int DEFAULT_PROXY_PORT = 8080;
+	private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
+	private static final int PROXY_FIELD_INDENT = 28;
 
-    JRadioButton autoDetectProxy;
+	static {
+		NUMBER_FORMAT.setGroupingUsed(false);
+	}
 
-    JRadioButton systemProxy;
+	// Shared variables
+	JTextField driverPath;
+	JCheckBox acceptInsecureCerts;
+	JCheckBox maximizeBrowser;
+	JCheckBox headless;
+	JCheckBox devMode;
+	JCheckBox recreateBrowserOnIterationStart;
 
-    JRadioButton manualProxy;
+	// Remote variables
+	JTextField remoteSeleniumGridText;
+	JComboBox<?> capabilitiesComboBox;
+	JCheckBox localFileDetector;
+	JLabel RemoteErrorMsg;
 
-    JRadioButton pacUrlProxy;
+	// Chrome variables
+	JTextField chromeAdditionalArgs;
+	JTextField chromeBinaryPath;
 
-    JTextField pacUrl;
+	// Edge variables
+	JTextField edgeAdditionalArgs;
+	JTextField edgeBinaryPath;
 
-    JTextField httpProxyHost;
+	// Firefox variables
+	JTextField userAgentOverrideText;
+	JCheckBox userAgentOverrideCheckbox;
+	JCheckBox ntlmOverrideCheckbox;
+	private Grid extensions;
+	private Grid preferences;
 
-    JFormattedTextField httpProxyPort;
+	// InternetExporer variables
+	JFormattedTextField fileUploadDialogTimeout;
+    JCheckBox ensureCleanSession;
+    JCheckBox ignoreProtectedMode;
+    JCheckBox silent;
+	JTextField initialBrowserUrl;
+	JLabel IEerrorMsg;
 
-    JCheckBox useHttpSettingsForAllProtocols;
+	// Proxy variables
+	JRadioButton autoDetectProxy;
+	JRadioButton directProxy; // synonymous with no proxy
+	JTextField ftpProxyHost;
+	JFormattedTextField ftpProxyPort;
+	JTextField httpProxyHost;
+	JFormattedTextField httpProxyPort;
+	JTextField httpsProxyHost;
+	JFormattedTextField httpsProxyPort;
+	JRadioButton manualProxy;
+	JTextArea noProxyList;
+	JTextField pacUrl;
+	JRadioButton pacUrlProxy;
+	JTextField socksProxyHost;
+	JFormattedTextField socksProxyPort;
+	JRadioButton systemProxy;
+	JCheckBox useHttpSettingsForAllProtocols;
 
-    JTextField httpsProxyHost;
+	protected abstract String getWikiPage();
 
-    JFormattedTextField httpsProxyPort;
+	abstract String browserName();
 
-    JTextField ftpProxyHost;
+	protected boolean isBrowser() {
+		return false;
+	}
 
-    JFormattedTextField ftpProxyPort;
+	protected boolean isProxyEnabled() {
+		return false;
+	}
 
-    JTextField socksProxyHost;
+	public WebDriverConfigGui() {
+		setLayout(new BorderLayout(0, 5));
+		setBorder(makeBorder());
+		add(JMeterPluginsUtils.addHelpLinkToPanel(makeTitlePanel(), getWikiPage()), BorderLayout.NORTH);
 
-    JFormattedTextField socksProxyPort;
+		final JTabbedPane tabbedPane = new JTabbedPane();
+		switch(browserName()) {
+		case "chrome":
+			tabbedPane.add("Driver", createMainPanel());
+			tabbedPane.add("Options", crteChromeOptionsPanel());
+			break;
 
-    JTextArea noProxyList;
+		case "edge":
+			tabbedPane.add("Driver", createMainPanel());
+			tabbedPane.add("Options", crteEdgeOptionsPanel());
+			break;
 
-    JCheckBox maximizeBrowser;
+		case "firefox":
+			tabbedPane.add("Driver", createMainPanel());
+			tabbedPane.add("Options", crteFirefoxOptionsPanel());
+			break;
 
-    /*
-     * THE FOLLOWING ATTRIBUTES ARE EXPERIMENTAL - USE WITH CAUTION
-     */
-    JCheckBox recreateBrowserOnIterationStart;
-    JCheckBox devMode;
+		case "internet explorer":
+			tabbedPane.add("Driver", createMainPanel());
+			tabbedPane.add("Options", crteIEOptionsPanel());
+			break;
 
-    public WebDriverConfigGui() {
-        createGui();
-    }
+		case "HtmlUnit":
+			tabbedPane.add("HtmlUnit", createMainPanel());
+			break;
 
-    @Override
-    public void configure(TestElement element) {
-        super.configure(element);
-        if (element instanceof WebDriverConfig) {
-            WebDriverConfig webDriverConfig = (WebDriverConfig) element;
-            if (isProxyEnabled()) {
-                switch (webDriverConfig.getProxyType()) {
-                    case DIRECT:
-                        directProxy.setSelected(true);
-                        break;
-                    case AUTO_DETECT:
-                        autoDetectProxy.setSelected(true);
-                        break;
-                    case MANUAL:
-                        manualProxy.setSelected(true);
-                        break;
-                    case PROXY_PAC:
-                        pacUrlProxy.setSelected(true);
-                        break;
-                    default:
-                        systemProxy.setSelected(true); // fallback to system proxy
-                }
-                pacUrl.setText(webDriverConfig.getProxyPacUrl());
-                httpProxyHost.setText(webDriverConfig.getHttpHost());
-                httpProxyPort.setText(String.valueOf(webDriverConfig.getHttpPort()));
-                useHttpSettingsForAllProtocols.setSelected(webDriverConfig.isUseHttpSettingsForAllProtocols());
-                httpsProxyHost.setText(webDriverConfig.getHttpsHost());
-                httpsProxyPort.setText(String.valueOf(webDriverConfig.getHttpsPort()));
-                ftpProxyHost.setText(webDriverConfig.getFtpHost());
-                ftpProxyPort.setText(String.valueOf(webDriverConfig.getFtpPort()));
-                socksProxyHost.setText(webDriverConfig.getSocksHost());
-                socksProxyPort.setText(String.valueOf(webDriverConfig.getSocksPort()));
-                noProxyList.setText(webDriverConfig.getNoProxyHost());
-            }
-            if (isExperimentalEnabled()) {
-                // EXPERIMENTAL
-                maximizeBrowser.setSelected(webDriverConfig.isBrowserMaximized());
-                recreateBrowserOnIterationStart.setSelected(webDriverConfig.isRecreateBrowserOnIterationStart());
-                devMode.setSelected(webDriverConfig.isDevMode());
-            }
-        }
-    }
+		case "Remote":
+			tabbedPane.add("Remote", createMainPanel());
+			tabbedPane.add("Chrome", crteChromeOptionsPanel());
+			tabbedPane.add("Edge", crteEdgeOptionsPanel());
+			tabbedPane.add("Firefox", crteFirefoxOptionsPanel());
+			tabbedPane.add("IE", crteIEOptionsPanel());
+			break;
 
-    @Override
-    public void modifyTestElement(TestElement element) {
-        configureTestElement(element);
-        if (element instanceof WebDriverConfig) {
-            WebDriverConfig webDriverConfig = (WebDriverConfig) element;
-            if (isProxyEnabled()) {
-                if (directProxy.isSelected()) {
-                    webDriverConfig.setProxyType(ProxyType.DIRECT);
-                } else if (autoDetectProxy.isSelected()) {
-                    webDriverConfig.setProxyType(ProxyType.AUTO_DETECT);
-                } else if (pacUrlProxy.isSelected()) {
-                    webDriverConfig.setProxyType(ProxyType.PROXY_PAC);
-                } else if (manualProxy.isSelected()) {
-                    webDriverConfig.setProxyType(ProxyType.MANUAL);
-                } else {
-                    webDriverConfig.setProxyType(ProxyType.SYSTEM); // fallback
-                }
-                webDriverConfig.setProxyPacUrl(pacUrl.getText());
-                webDriverConfig.setHttpHost(httpProxyHost.getText());
-                webDriverConfig.setHttpPort(Integer.parseInt(httpProxyPort.getText()));
-                webDriverConfig.setUseHttpSettingsForAllProtocols(useHttpSettingsForAllProtocols.isSelected());
-                webDriverConfig.setHttpsHost(httpsProxyHost.getText());
-                webDriverConfig.setHttpsPort(Integer.parseInt(httpsProxyPort.getText()));
-                webDriverConfig.setFtpHost(ftpProxyHost.getText());
-                webDriverConfig.setFtpPort(Integer.parseInt(ftpProxyPort.getText()));
-                webDriverConfig.setSocksHost(socksProxyHost.getText());
-                webDriverConfig.setSocksPort(Integer.parseInt(socksProxyPort.getText()));
-                webDriverConfig.setNoProxyHost(noProxyList.getText());
-            }
-            if (isExperimentalEnabled()) {
-                // EXPERIMENTAL
-                webDriverConfig.setBrowserMaximized(maximizeBrowser.isSelected());
-                webDriverConfig.setRecreateBrowserOnIterationStart(recreateBrowserOnIterationStart.isSelected());
-                webDriverConfig.setDevMode(devMode.isSelected());
-            }
-        }
-    }
+		default:
+			break;
+		}
 
-    @Override
-    public void clearGui() {
-        super.clearGui();
-        if (isProxyEnabled()) {
-            systemProxy.setSelected(true);
-            pacUrl.setText("");
-            httpProxyHost.setText("");
-            httpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-            useHttpSettingsForAllProtocols.setSelected(true);
-            httpsProxyHost.setText("");
-            httpsProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-            ftpProxyHost.setText("");
-            ftpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-            socksProxyHost.setText("");
-            socksProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-            noProxyList.setText(DEFAULT_NO_PROXY_LIST);
-        }
-        if (isExperimentalEnabled()) {
-            maximizeBrowser.setSelected(true);
-        }
-    }
+		// Proxy tab
+		if (isProxyEnabled()) {
+			tabbedPane.add("Proxy", createProxyPanel());
+		}
+		add(tabbedPane, BorderLayout.CENTER);
+	}
 
-    private void createGui() {
-        setLayout(new BorderLayout(0, 5));
+	protected JPanel createMainPanel() {
+		JPanel panel = new VerticalPanel();
 
-        setBorder(makeBorder());
-        add(JMeterPluginsUtils.addHelpLinkToPanel(makeTitlePanel(), getWikiPage()), BorderLayout.NORTH);
+		if (isBrowser()) {
+			JPanel driverPanel = new HorizontalPanel();
+			JLabel driverLabel = new JLabel("Path to Driver");
+			driverPanel.add(driverLabel);
+			driverPath = new JTextField();
+			driverPanel.add(driverPath);
+			panel.add(driverPanel);
 
-        final JTabbedPane tabbedPane = new JTabbedPane();
-        if (isProxyEnabled()) {
-            tabbedPane.add("Proxy", createProxyPanel());
-        }
-        tabbedPane.add(browserName(), createBrowserPanel());
-        if (isExperimentalEnabled()) {
-            tabbedPane.add("Experimental", createExperimentalPanel());
-        }
+			devMode = new JCheckBox("Development Mode (keep browser opened on error)");
+			devMode.setSelected(false);
+			panel.add(devMode);
+		}
 
-        add(tabbedPane, BorderLayout.CENTER);
-    }
+		if ((browserName().equals("Remote"))) {
+			JLabel remoteUrlLabel = new JLabel();
+			remoteUrlLabel.setText("Selenium Grid URL");
+			panel.add(remoteUrlLabel);
+			remoteSeleniumGridText = new JTextField();
+			remoteSeleniumGridText.setEnabled(true);
+			remoteSeleniumGridText.addFocusListener((FocusListener) this);
+			panel.add(remoteSeleniumGridText);
 
-    private JPanel createExperimentalPanel() {
-        JPanel panel = new VerticalPanel();
+			panel.add(RemoteErrorMsg = new JLabel());
+			RemoteErrorMsg.setForeground(Color.red);
 
-        // LABEL
-        JLabel experimentalLabel = new JLabel("EXPERIMENTAL PROPERTIES - USE AT YOUR DISCRETION");
-        experimentalLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, 16));
-        panel.add(experimentalLabel);
+			JLabel capabilitiesLabel = new JLabel();
+			capabilitiesLabel.setText("Capability");
+			panel.add(capabilitiesLabel);
+			capabilitiesComboBox = new JComboBox<Object>(RemoteCapability.values());
+			panel.add(capabilitiesComboBox);
 
-        maximizeBrowser = new JCheckBox("Maximize browser window");
-        maximizeBrowser.setSelected(true);
-        panel.add(maximizeBrowser);
+			localFileDetector = new JCheckBox("Local File Detector");
+			panel.add(localFileDetector);
+		}
 
-        // EXPERIMENTAL PROPERTIES
-        recreateBrowserOnIterationStart = new JCheckBox("Create a new Browser at the start of each iteration");
-        recreateBrowserOnIterationStart.setSelected(false);
-        panel.add(recreateBrowserOnIterationStart);
+		acceptInsecureCerts = new JCheckBox("Accept Insecure Certs");
+		panel.add(acceptInsecureCerts);
 
-        devMode = new JCheckBox("Development Mode (keep browser opened on error)");
-        devMode.setSelected(false);
-        panel.add(devMode);
+		if (!(browserName().equals("HtmlUnit"))) {
+			headless = new JCheckBox("Headless");
+			headless.setSelected(false);
+			headless.setEnabled(true);
+			panel.add(headless);
 
-        return panel;
-    }
+			maximizeBrowser = new JCheckBox("Maximize browser window");
+			maximizeBrowser.setSelected(true);
+			panel.add(maximizeBrowser);
+		}
 
-    private void createPacUrlProxy(JPanel panel, ButtonGroup group) {
-        pacUrlProxy = new JRadioButton("Automatic proxy configuration URL");
-        group.add(pacUrlProxy);
-        panel.add(pacUrlProxy);
+		recreateBrowserOnIterationStart = new JCheckBox("Create a new Browser at the start of each iteration");
+		recreateBrowserOnIterationStart.setSelected(false);
+		panel.add(recreateBrowserOnIterationStart);
 
-        pacUrlProxy.addItemListener(this);
+		return panel;
+	}
 
-        JPanel pacUrlPanel = new HorizontalPanel();
-        pacUrl = new JTextField();
-        pacUrl.setEnabled(false);
-        pacUrlPanel.add(pacUrl, BorderLayout.CENTER);
-        pacUrlPanel.setBorder(BorderFactory.createEmptyBorder(0, PROXY_FIELD_INDENT, 0, 0));
-        panel.add(pacUrlPanel);
-    }
+	private JPanel crteChromeOptionsPanel() {
+		final JPanel browserPanel = new VerticalPanel();
 
-    private void createManualProxy(JPanel panel, ButtonGroup group) {
-        manualProxy = new JRadioButton("Manual proxy configuration");
-        group.add(manualProxy);
-        panel.add(manualProxy);
+		final JPanel binaryPathPanel = new HorizontalPanel();
+		final JLabel binaryPathLabel = new JLabel("Binary (if in non-standard location)");
+		chromeBinaryPath = new JTextField("");
+		binaryPathPanel.add(binaryPathLabel);
+		binaryPathPanel.add(chromeBinaryPath);
+		browserPanel.add(binaryPathPanel);
 
-        manualProxy.addItemListener(this);
+		final JPanel additionalArgsPanel = new HorizontalPanel();
+		final JLabel additionalArgsLabel = new JLabel("Additional arguments");
+		chromeAdditionalArgs = new JTextField();
+		additionalArgsPanel.add(additionalArgsLabel);
+		additionalArgsPanel.add(chromeAdditionalArgs);
+		browserPanel.add(additionalArgsPanel);
 
-        JPanel manualPanel = new VerticalPanel();
-        manualPanel.setBorder(BorderFactory.createEmptyBorder(0, PROXY_FIELD_INDENT, 0, 0));
+		return browserPanel;
+	}
 
-        httpProxyHost = new JTextField();
-        httpProxyPort = new JFormattedTextField(NUMBER_FORMAT);
-        httpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-        manualPanel.add(createProxyHostAndPortPanel(httpProxyHost, httpProxyPort, "HTTP Proxy:"));
-        useHttpSettingsForAllProtocols = new JCheckBox("Use HTTP proxy server for all protocols");
-        useHttpSettingsForAllProtocols.setSelected(true);
-        useHttpSettingsForAllProtocols.setEnabled(false);
-        useHttpSettingsForAllProtocols.addItemListener(this);
-        manualPanel.add(useHttpSettingsForAllProtocols);
+	private JPanel crteEdgeOptionsPanel() {
+		final JPanel browserPanel = new VerticalPanel();
 
-        httpsProxyHost = new JTextField();
-        httpsProxyPort = new JFormattedTextField(NUMBER_FORMAT);
-        httpsProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-        manualPanel.add(createProxyHostAndPortPanel(httpsProxyHost, httpsProxyPort, "SSL Proxy:"));
+		final JPanel binaryPathPanel = new HorizontalPanel();
+		final JLabel binaryPathLabel = new JLabel("Binary (if in non-standard location)");
+		edgeBinaryPath = new JTextField("");
+		binaryPathPanel.add(binaryPathLabel);
+		binaryPathPanel.add(edgeBinaryPath);
+		browserPanel.add(binaryPathPanel);
 
-        ftpProxyHost = new JTextField();
-        ftpProxyPort = new JFormattedTextField(NUMBER_FORMAT);
-        ftpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-        manualPanel.add(createProxyHostAndPortPanel(ftpProxyHost, ftpProxyPort, "FTP Proxy:"));
+		final JPanel additionalArgsPanel = new HorizontalPanel();
+		final JLabel additionalArgsLabel = new JLabel("Additional arguments");
+		edgeAdditionalArgs = new JTextField();
+		additionalArgsPanel.add(additionalArgsLabel);
+		additionalArgsPanel.add(edgeAdditionalArgs);
+		browserPanel.add(additionalArgsPanel);
 
-        socksProxyHost = new JTextField();
-        socksProxyPort = new JFormattedTextField(NUMBER_FORMAT);
-        socksProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
-        manualPanel.add(createProxyHostAndPortPanel(socksProxyHost, socksProxyPort, "SOCKS Proxy:"));
+		return browserPanel;
+	}
 
-        manualPanel.add(createNoProxyPanel());
+	private JPanel crteFirefoxOptionsPanel() {
+		final JPanel browserPanel = new VerticalPanel();
 
-        panel.add(manualPanel);
-    }
+		userAgentOverrideCheckbox = new JCheckBox("Override User Agent");
+		userAgentOverrideCheckbox.setSelected(false);
+		userAgentOverrideCheckbox.setEnabled(true);
+		userAgentOverrideCheckbox.addItemListener(this);
+		browserPanel.add(userAgentOverrideCheckbox);
 
-    private JPanel createNoProxyPanel() {
-        JPanel noProxyPanel = new VerticalPanel();
-        JLabel noProxyListLabel = new JLabel("No Proxy for:");
-        noProxyPanel.add(noProxyListLabel);
+		userAgentOverrideText = new JTextField();
+		userAgentOverrideText.setEnabled(false);
+		browserPanel.add(userAgentOverrideText);
 
-        noProxyList = new JTextArea(3, 10);
-        noProxyList.setText(DEFAULT_NO_PROXY_LIST);
-        noProxyList.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        noProxyList.setEnabled(false);
-        noProxyPanel.add(noProxyList);
+		ntlmOverrideCheckbox = new JCheckBox("Enable NTLM");
+		ntlmOverrideCheckbox.setSelected(false);
+		ntlmOverrideCheckbox.setEnabled(true);
+		ntlmOverrideCheckbox.addItemListener(this);
+		browserPanel.add(ntlmOverrideCheckbox);
 
-        JLabel noProxyExample = new JLabel("Example: .jmeter.org, .com.au, 192.168.1.0/24");
-        noProxyPanel.add(noProxyExample);
+		extensions = new Grid("Load Extensions", new String[] { "Path to XPI File" }, new Class[] { String.class },
+				new String[] { "" });
+		browserPanel.add(extensions);
 
-        return noProxyPanel;
-    }
+		preferences = new Grid("Set Preferences", new String[] { "Name", "Value" },
+				new Class[] { String.class, String.class }, new String[] { "", "" });
+		browserPanel.add(preferences);
 
-    private JPanel createProxyHostAndPortPanel(JTextField proxyHost, JTextField proxyPort, String label) {
-        JPanel httpPanel = new HorizontalPanel();
-        JLabel httpProxyHostLabel = new JLabel(label);
-        httpPanel.add(httpProxyHostLabel);
-        httpPanel.add(proxyHost);
-        proxyHost.setEnabled(false);
-        JLabel httpProxyPortLabel = new JLabel("Port:");
-        httpPanel.add(httpProxyPortLabel);
-        httpPanel.add(proxyPort);
-        proxyPort.setEnabled(false);
-        return httpPanel;
-    }
+		return browserPanel;
+	}
 
-    private void createSystemProxy(JPanel panel, ButtonGroup group) {
-        systemProxy = new JRadioButton("Use system proxy settings");
-        group.add(systemProxy);
-        panel.add(systemProxy);
-    }
+	private JPanel crteIEOptionsPanel() {
+		final JPanel browserPanel = new VerticalPanel();
 
-    private void createAutoDetectProxy(JPanel panel, ButtonGroup group) {
-        autoDetectProxy = new JRadioButton("Auto-detect proxy settings for this network");
-        group.add(autoDetectProxy);
-        panel.add(autoDetectProxy);
-    }
+		// Initial URL
+		JLabel initialUrlLabel = new JLabel();
+		initialUrlLabel.setText("Initial Browser URL");
+		browserPanel.add(initialUrlLabel);
+		initialBrowserUrl = new JTextField();
+		initialBrowserUrl.setEnabled(true);
+		initialBrowserUrl.addFocusListener((FocusListener) this);
+		browserPanel.add(initialBrowserUrl);
 
-    private void createDirectProxy(JPanel panel, ButtonGroup group) {
-        directProxy = new JRadioButton("No proxy");
-        group.add(directProxy);
-        panel.add(directProxy);
-    }
+		browserPanel.add(IEerrorMsg = new JLabel());
+		IEerrorMsg.setForeground(Color.red);
 
-    protected JPanel createProxyPanel() {
-        JPanel mainPanel = new VerticalPanel();
-        ButtonGroup group = new ButtonGroup();
+		// fileUploadDialogTimeout
+        JPanel fileUploadDialogTimeoutPanel = new HorizontalPanel();
+        JLabel fileUploadDialogTimeoutLabel = new JLabel("Wait for File Upload Dialog up to (ms)");
+        fileUploadDialogTimeoutPanel.add(fileUploadDialogTimeoutLabel);
+        fileUploadDialogTimeout = new JFormattedTextField(NUMBER_FORMAT);
+        fileUploadDialogTimeout.setText(String.valueOf(Default_FileUploadDialogTimeout));
+        fileUploadDialogTimeoutPanel.add(fileUploadDialogTimeout);
+        browserPanel.add(fileUploadDialogTimeoutPanel);
 
-        createDirectProxy(mainPanel, group);
-        createAutoDetectProxy(mainPanel, group);
-        createSystemProxy(mainPanel, group);
-        createManualProxy(mainPanel, group);
-        createPacUrlProxy(mainPanel, group);
+        ensureCleanSession = new JCheckBox("Ensure Clean Session");
+        ensureCleanSession.setSelected(false);
+        browserPanel.add(ensureCleanSession);
 
-        systemProxy.setSelected(true);
-        return mainPanel;
-    }
+        ignoreProtectedMode = new JCheckBox("Ignore Protected Mode Settings");
+        ignoreProtectedMode.setSelected(false);
+        browserPanel.add(ignoreProtectedMode);
 
-    protected abstract JPanel createBrowserPanel();
+        silent = new JCheckBox("Silent");
+        silent.setSelected(false);
+        browserPanel.add(silent);
 
-    protected abstract String browserName();
+		return browserPanel;
+	}
 
-    protected abstract String getWikiPage();
+	protected JPanel createProxyPanel() {
+		JPanel mainPanel = new VerticalPanel();
+		ButtonGroup group = new ButtonGroup();
 
-    protected boolean isProxyEnabled() {
-        return false;
-    }
+		// Direct proxy
+		directProxy = new JRadioButton("No proxy");
+		group.add(directProxy);
+		mainPanel.add(directProxy);
 
-    protected boolean isExperimentalEnabled() {
-        return false;
-    }
+		// Auto-detect proxy
+		autoDetectProxy = new JRadioButton("Auto-detect proxy settings for this network");
+		group.add(autoDetectProxy);
+		mainPanel.add(autoDetectProxy);
 
-    @Override
-    public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getSource() == pacUrlProxy) {
-            pacUrl.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
-        } else if (itemEvent.getSource() == manualProxy) {
-            httpProxyHost.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
-            httpProxyPort.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
-            useHttpSettingsForAllProtocols.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
-            noProxyList.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
-            enableOtherProtocolsOnlyIfManualProxySelectedAndUseHttpSettingsIsNotSelected();
-        } else if (itemEvent.getSource() == useHttpSettingsForAllProtocols) {
-            enableOtherProtocolsOnlyIfManualProxySelectedAndUseHttpSettingsIsNotSelected();
-        }
-    }
+		// System proxy
+		systemProxy = new JRadioButton("Use system proxy settings");
+		group.add(systemProxy);
+		mainPanel.add(systemProxy);
 
-    private void enableOtherProtocolsOnlyIfManualProxySelectedAndUseHttpSettingsIsNotSelected() {
-        final boolean enabledState = !useHttpSettingsForAllProtocols.isSelected() && manualProxy.isSelected();
-        httpsProxyHost.setEnabled(enabledState);
-        httpsProxyPort.setEnabled(enabledState);
-        ftpProxyHost.setEnabled(enabledState);
-        ftpProxyPort.setEnabled(enabledState);
-        socksProxyHost.setEnabled(enabledState);
-        socksProxyPort.setEnabled(enabledState);
-    }
+		createManualProxy(mainPanel, group);
+		createPacUrlProxy(mainPanel, group);
+
+		systemProxy.setSelected(true);
+		return mainPanel;
+	}
+
+	private void createManualProxy(JPanel panel, ButtonGroup group) {
+		manualProxy = new JRadioButton("Manual proxy configuration");
+		group.add(manualProxy);
+		panel.add(manualProxy);
+
+		manualProxy.addItemListener(this);
+
+		JPanel manualPanel = new VerticalPanel();
+		manualPanel.setBorder(BorderFactory.createEmptyBorder(0, PROXY_FIELD_INDENT, 0, 0));
+
+		httpProxyHost = new JTextField();
+		httpProxyPort = new JFormattedTextField(NUMBER_FORMAT);
+		httpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		manualPanel.add(createProxyHostAndPortPanel(httpProxyHost, httpProxyPort, "HTTP Proxy:"));
+		useHttpSettingsForAllProtocols = new JCheckBox("Use HTTP proxy server for all protocols");
+		useHttpSettingsForAllProtocols.setSelected(true);
+		useHttpSettingsForAllProtocols.setEnabled(false);
+		useHttpSettingsForAllProtocols.addItemListener(this);
+		manualPanel.add(useHttpSettingsForAllProtocols);
+
+		httpsProxyHost = new JTextField();
+		httpsProxyPort = new JFormattedTextField(NUMBER_FORMAT);
+		httpsProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		manualPanel.add(createProxyHostAndPortPanel(httpsProxyHost, httpsProxyPort, "SSL Proxy:"));
+
+		ftpProxyHost = new JTextField();
+		ftpProxyPort = new JFormattedTextField(NUMBER_FORMAT);
+		ftpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		manualPanel.add(createProxyHostAndPortPanel(ftpProxyHost, ftpProxyPort, "FTP Proxy:"));
+
+		socksProxyHost = new JTextField();
+		socksProxyPort = new JFormattedTextField(NUMBER_FORMAT);
+		socksProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		manualPanel.add(createProxyHostAndPortPanel(socksProxyHost, socksProxyPort, "SOCKS Proxy:"));
+
+		manualPanel.add(createNoProxyPanel());
+
+		panel.add(manualPanel);
+	}
+
+	private JPanel createProxyHostAndPortPanel(JTextField proxyHost, JTextField proxyPort, String label) {
+		JPanel httpPanel = new HorizontalPanel();
+		JLabel httpProxyHostLabel = new JLabel(label);
+		httpPanel.add(httpProxyHostLabel);
+		httpPanel.add(proxyHost);
+		proxyHost.setEnabled(false);
+		JLabel httpProxyPortLabel = new JLabel("Port:");
+		httpPanel.add(httpProxyPortLabel);
+		httpPanel.add(proxyPort);
+		proxyPort.setEnabled(false);
+		return httpPanel;
+	}
+
+	private JPanel createNoProxyPanel() {
+		JPanel noProxyPanel = new VerticalPanel();
+		JLabel noProxyListLabel = new JLabel("No Proxy for:");
+		noProxyPanel.add(noProxyListLabel);
+
+		noProxyList = new JTextArea(3, 10);
+		noProxyList.setText(DEFAULT_NO_PROXY_LIST);
+		noProxyList.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+		noProxyList.setEnabled(false);
+		noProxyPanel.add(noProxyList);
+
+		JLabel noProxyExample = new JLabel("Example: .jmeter.org, .com.au, 192.168.1.0/24");
+		noProxyPanel.add(noProxyExample);
+
+		return noProxyPanel;
+	}
+
+	private void createPacUrlProxy(JPanel panel, ButtonGroup group) {
+		pacUrlProxy = new JRadioButton("Automatic proxy configuration URL");
+		group.add(pacUrlProxy);
+		panel.add(pacUrlProxy);
+
+		pacUrlProxy.addItemListener(this);
+
+		JPanel pacUrlPanel = new HorizontalPanel();
+		pacUrl = new JTextField();
+		pacUrl.setEnabled(false);
+		pacUrlPanel.add(pacUrl, BorderLayout.CENTER);
+		pacUrlPanel.setBorder(BorderFactory.createEmptyBorder(0, PROXY_FIELD_INDENT, 0, 0));
+		panel.add(pacUrlPanel);
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent itemEvent) {
+		if (itemEvent.getSource() == pacUrlProxy) {
+			pacUrl.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
+		} else if (itemEvent.getSource() == manualProxy) {
+			httpProxyHost.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
+			httpProxyPort.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
+			useHttpSettingsForAllProtocols.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
+			noProxyList.setEnabled(itemEvent.getStateChange() == ItemEvent.SELECTED);
+			enableOtherProtocolsOnlyIfManualProxySelectedAndUseHttpSettingsIsNotSelected();
+		} else if (itemEvent.getSource() == useHttpSettingsForAllProtocols) {
+			enableOtherProtocolsOnlyIfManualProxySelectedAndUseHttpSettingsIsNotSelected();
+		}
+	}
+
+	private void enableOtherProtocolsOnlyIfManualProxySelectedAndUseHttpSettingsIsNotSelected() {
+		final boolean enabledState = !useHttpSettingsForAllProtocols.isSelected() && manualProxy.isSelected();
+		httpsProxyHost.setEnabled(enabledState);
+		httpsProxyPort.setEnabled(enabledState);
+		ftpProxyHost.setEnabled(enabledState);
+		ftpProxyPort.setEnabled(enabledState);
+		socksProxyHost.setEnabled(enabledState);
+		socksProxyPort.setEnabled(enabledState);
+	}
+
+	@Override
+	public void clearGui() {
+		super.clearGui();
+
+		acceptInsecureCerts.setSelected(false);
+		recreateBrowserOnIterationStart.setSelected(false);
+
+		// Browser common options
+		if (isBrowser()) {
+			driverPath.setText("path to driver.exe of the relevant browser");
+			devMode.setSelected(false);
+		}
+
+		if (!(browserName().equals("HtmlUnit"))) {
+			maximizeBrowser.setSelected(true);
+			headless.setSelected(false);
+		}
+
+		if ((browserName().equals("chrome")) || (browserName().equals("Remote"))) {
+			chromeAdditionalArgs.setText("");
+			chromeBinaryPath.setText("");
+		}
+
+		if ((browserName().equals("edge")) || (browserName().equals("Remote"))) {
+			edgeAdditionalArgs.setText("");
+			edgeBinaryPath.setText("");
+		}
+
+		if ((browserName().equals("firefox")) || (browserName().equals("Remote"))) {
+			userAgentOverrideCheckbox.setSelected(false);
+			userAgentOverrideText.setText("");
+			ntlmOverrideCheckbox.setSelected(false);
+			extensions.getModel().clearData();
+			preferences.getModel().clearData();
+		}
+
+		if ((browserName().equals("internet explorer")) || (browserName().equals("Remote"))) {
+	        fileUploadDialogTimeout.setText(String.valueOf(Default_FileUploadDialogTimeout));
+	        ensureCleanSession.setSelected(false);
+	        ignoreProtectedMode.setSelected(false);
+	        silent.setSelected(false);
+	        // Set a default initial page that is valid otherwise IeDriver may hang on startup...
+	        initialBrowserUrl.setText("https://www.bing.com/");
+		}
+
+		// Proxy
+		clearProxy();
+	}
+
+	private void clearProxy() {
+		systemProxy.setSelected(true);
+		pacUrl.setText("");
+		httpProxyHost.setText("");
+		httpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		useHttpSettingsForAllProtocols.setSelected(true);
+		httpsProxyHost.setText("");
+		httpsProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		ftpProxyHost.setText("");
+		ftpProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		socksProxyHost.setText("");
+		socksProxyPort.setText(String.valueOf(DEFAULT_PROXY_PORT));
+		noProxyList.setText(DEFAULT_NO_PROXY_LIST);
+	}
+
+	@Override
+	public void configure(TestElement element) {
+		super.configure(element);
+		if (element instanceof WebDriverConfig) {
+			WebDriverConfig<?> webDriverConfig = (WebDriverConfig<?>) element;
+
+			acceptInsecureCerts.setSelected(webDriverConfig.isAcceptInsecureCerts());
+			recreateBrowserOnIterationStart.setSelected(webDriverConfig.isRecreateBrowserOnIterationStart());
+
+			// Commmon browser configs
+			if (isBrowser()) {
+				driverPath.setText(webDriverConfig.getDriverPath());
+				devMode.setSelected(webDriverConfig.isDevMode());
+			}
+
+			if (!(browserName().equals("HtmlUnit"))) {
+				headless.setSelected(webDriverConfig.isHeadless());
+				maximizeBrowser.setSelected(webDriverConfig.isBrowserMaximized());
+			}
+
+			// Chrome configs
+			if ((browserName().equals("chrome")) || (browserName().equals("Remote"))) {
+				chromeAdditionalArgs.setText(webDriverConfig.getChromeAdditionalArgs());
+				chromeBinaryPath.setText(webDriverConfig.getChromeBinaryPath());
+			}
+
+			// Edge configs
+			if ((browserName().equals("edge")) || (browserName().equals("Remote"))) {
+				edgeAdditionalArgs.setText(webDriverConfig.getEdgeAdditionalArgs());
+				edgeBinaryPath.setText(webDriverConfig.getEdgeBinaryPath());
+			}
+
+			// Firefox configs
+			if ((browserName().equals("firefox")) || (browserName().equals("Remote"))) {				
+				userAgentOverrideCheckbox.setSelected(webDriverConfig.isUserAgentOverridden());
+				userAgentOverrideText.setText(webDriverConfig.getUserAgentOverride());
+				userAgentOverrideText.setEnabled(webDriverConfig.isUserAgentOverridden());
+				JMeterProperty ext = webDriverConfig.getExtensions();
+				if (!(ext instanceof NullProperty)) {
+					JMeterPluginsUtils.collectionPropertyToTableModelRows((CollectionProperty) ext, extensions.getModel());
+				}
+				JMeterProperty pref = webDriverConfig.getPreferences();
+				if (!(ext instanceof NullProperty)) {
+					JMeterPluginsUtils.collectionPropertyToTableModelRows((CollectionProperty) pref,
+							preferences.getModel());
+				}
+			}
+
+			// IE configs
+			if ((browserName().equals("internet explorer")) || (browserName().equals("Remote"))) {
+	            fileUploadDialogTimeout.setText(String.valueOf(webDriverConfig.getFileUploadDialogTimeout()));
+	            ensureCleanSession.setSelected(webDriverConfig.isEnsureCleanSession());
+	            ignoreProtectedMode.setSelected(webDriverConfig.isIgnoreProtectedMode());
+	            silent.setSelected(webDriverConfig.isSilent());
+	            initialBrowserUrl.setText(webDriverConfig.getInitialIeUrl());
+			}
+
+			// Proxy
+			configureProxy(webDriverConfig);
+		}
+	}
+
+	private void configureProxy(WebDriverConfig<?> webDriverConfig) {
+		switch (webDriverConfig.getProxyType()) {
+		case DIRECT:
+			directProxy.setSelected(true);
+			break;
+		case AUTO_DETECT:
+			autoDetectProxy.setSelected(true);
+			break;
+		case MANUAL:
+			manualProxy.setSelected(true);
+			break;
+		case PROXY_PAC:
+			pacUrlProxy.setSelected(true);
+			break;
+		default:
+			systemProxy.setSelected(true); // fallback to system proxy
+		}
+		pacUrl.setText(webDriverConfig.getProxyPacUrl());
+		httpProxyHost.setText(webDriverConfig.getHttpHost());
+		httpProxyPort.setText(String.valueOf(webDriverConfig.getHttpPort()));
+		useHttpSettingsForAllProtocols.setSelected(webDriverConfig.isUseHttpSettingsForAllProtocols());
+		httpsProxyHost.setText(webDriverConfig.getHttpsHost());
+		httpsProxyPort.setText(String.valueOf(webDriverConfig.getHttpsPort()));
+		ftpProxyHost.setText(webDriverConfig.getFtpHost());
+		ftpProxyPort.setText(String.valueOf(webDriverConfig.getFtpPort()));
+		socksProxyHost.setText(webDriverConfig.getSocksHost());
+		socksProxyPort.setText(String.valueOf(webDriverConfig.getSocksPort()));
+		noProxyList.setText(webDriverConfig.getNoProxyHost());
+	}
+
+	@Override
+	public void modifyTestElement(TestElement element) {
+		configureTestElement(element);
+		if (element instanceof WebDriverConfig) {
+			WebDriverConfig<?> webDriverConfig = (WebDriverConfig<?>) element;
+
+			webDriverConfig.setAcceptInsecureCerts(acceptInsecureCerts.isSelected());
+			webDriverConfig.setRecreateBrowserOnIterationStart(recreateBrowserOnIterationStart.isSelected());
+
+			// Common browser elements
+			if (isBrowser()) {
+				webDriverConfig.setDriverPath(driverPath.getText());
+				webDriverConfig.setDevMode(devMode.isSelected());
+			}
+
+			if (!(browserName().equals("HtmlUnit"))) {
+				webDriverConfig.setBrowserMaximized(maximizeBrowser.isSelected());
+				webDriverConfig.setHeadless(headless.isSelected());
+			}
+
+			// Chrome elements
+			if ((browserName().equals("chrome")) || (browserName().equals("Remote"))) {
+				webDriverConfig.setChromeAdditionalArgs(chromeAdditionalArgs.getText());
+				webDriverConfig.setChromeBinaryPath(chromeBinaryPath.getText());
+			}
+
+			// Edge elements
+			if ((browserName().equals("edge")) || (browserName().equals("Remote"))) {
+				webDriverConfig.setEdgeAdditionalArgs(edgeAdditionalArgs.getText());
+				webDriverConfig.setEdgeBinaryPath(edgeBinaryPath.getText());
+			}
+
+			// Firefox elements
+			if ((browserName().equals("firefox")) || (browserName().equals("Remote"))) {
+				webDriverConfig.setUserAgentOverridden(userAgentOverrideCheckbox.isSelected());
+				webDriverConfig.setNtlmSetting(ntlmOverrideCheckbox.isSelected());
+				if (userAgentOverrideCheckbox.isSelected()) {
+					webDriverConfig.setUserAgentOverride(userAgentOverrideText.getText());
+				}
+				webDriverConfig.setExtensions(extensions.getModel());
+				webDriverConfig.setPreferences(preferences.getModel());
+			}
+
+			// IE elements
+			if ((browserName().equals("internet explorer")) || (browserName().equals("Remote"))) {
+				webDriverConfig.setFileUploadDialogTimeout(Integer.parseInt(fileUploadDialogTimeout.getText()));
+				webDriverConfig.setEnsureCleanSession(ensureCleanSession.isSelected());
+				webDriverConfig.setIgnoreProtectedMode(ignoreProtectedMode.isSelected());
+				webDriverConfig.setSilent(silent.isSelected());
+				webDriverConfig.setInitialIeUrl(initialBrowserUrl.getText());
+			}
+
+			// Proxy
+			modifyProxy(webDriverConfig);
+		}
+	}
+
+	private void modifyProxy(WebDriverConfig<?> webDriverConfig) {
+		if (directProxy.isSelected()) {
+			webDriverConfig.setProxyType(ProxyType.DIRECT);
+		} else if (autoDetectProxy.isSelected()) {
+			webDriverConfig.setProxyType(ProxyType.AUTO_DETECT);
+		} else if (pacUrlProxy.isSelected()) {
+			webDriverConfig.setProxyType(ProxyType.PROXY_PAC);
+		} else if (manualProxy.isSelected()) {
+			webDriverConfig.setProxyType(ProxyType.MANUAL);
+		} else {
+			webDriverConfig.setProxyType(ProxyType.SYSTEM); // fallback
+		}
+		webDriverConfig.setProxyPacUrl(pacUrl.getText());
+		webDriverConfig.setHttpHost(httpProxyHost.getText());
+		webDriverConfig.setHttpPort(Integer.parseInt(httpProxyPort.getText()));
+		webDriverConfig.setUseHttpSettingsForAllProtocols(useHttpSettingsForAllProtocols.isSelected());
+		webDriverConfig.setHttpsHost(httpsProxyHost.getText());
+		webDriverConfig.setHttpsPort(Integer.parseInt(httpsProxyPort.getText()));
+		webDriverConfig.setFtpHost(ftpProxyHost.getText());
+		webDriverConfig.setFtpPort(Integer.parseInt(ftpProxyPort.getText()));
+		webDriverConfig.setSocksHost(socksProxyHost.getText());
+		webDriverConfig.setSocksPort(Integer.parseInt(socksProxyPort.getText()));
+		webDriverConfig.setNoProxyHost(noProxyList.getText());
+	}
+
+	public boolean isValidUrl(String urlStr) {
+		try {
+			new URL(urlStr);
+			return true;
+		} catch (MalformedURLException e) {
+			return false;
+		}
+	}
 }
