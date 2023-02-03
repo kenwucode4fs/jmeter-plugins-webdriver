@@ -3,6 +3,7 @@ package com.googlecode.jmeter.plugins.webdriver.config;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -275,6 +276,9 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
 
     protected ChromeOptions createChromeOptions(CustomBrowserConfig customBrowserConfig) {
         ChromeOptions options = createChromeOptions();
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("intl.accept_languages", customBrowserConfig.getBrowserLanguage());
+        options.setExperimentalOption("prefs", prefs);
         options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
         options.setHeadless(customBrowserConfig.isHeadless());
         options.addArguments("--enable-logging --v=1");
@@ -357,8 +361,11 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
 
     protected FirefoxOptions createFirefoxOptions(CustomBrowserConfig customBrowserConfig) {
         FirefoxOptions options = createFirefoxOptions();
+        FirefoxProfile profile = new FirefoxProfile();
+        profile.setPreference("intl.accept_languages", customBrowserConfig.getBrowserLanguage());
         options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
         options.setHeadless(customBrowserConfig.isHeadless());
+        options.setProfile(profile);
         return options;
     }
 
