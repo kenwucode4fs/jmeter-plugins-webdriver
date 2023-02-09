@@ -281,6 +281,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         options.setExperimentalOption("prefs", prefs);
         options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
         options.setHeadless(customBrowserConfig.isHeadless());
+        options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.addArguments("--enable-logging --v=1");
         return options;
     }
@@ -365,6 +366,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         profile.setPreference("intl.accept_languages", customBrowserConfig.getBrowserLanguage());
         options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
         options.setHeadless(customBrowserConfig.isHeadless());
+        options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.setProfile(profile);
         return options;
     }
