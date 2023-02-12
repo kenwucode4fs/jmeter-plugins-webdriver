@@ -277,9 +277,9 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected ChromeOptions createChromeOptions(CustomBrowserConfig customBrowserConfig) {
         ChromeOptions options = createChromeOptions();
         Map<String, Object> prefs = new HashMap<>();
-        prefs.put("intl.accept_languages", customBrowserConfig.getBrowserLanguage());
+        prefs.put("intl.accept_languages", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN"));
         options.setExperimentalOption("prefs", prefs);
-        options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
+        options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
         options.setHeadless(customBrowserConfig.isHeadless());
         options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.addArguments("--enable-logging --v=1");
@@ -363,11 +363,12 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected FirefoxOptions createFirefoxOptions(CustomBrowserConfig customBrowserConfig) {
         FirefoxOptions options = createFirefoxOptions();
         FirefoxProfile profile = new FirefoxProfile();
-        profile.setPreference("intl.accept_languages", customBrowserConfig.getBrowserLanguage());
-        options.addArguments(String.format("--lang=%s", customBrowserConfig.getBrowserLanguage()));
+        profile.setPreference("intl.accept_languages", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN"));
+        options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
         options.setHeadless(customBrowserConfig.isHeadless());
         options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.setProfile(profile);
+        options.setProxy(ProxyFactory.getInstance().getDirectProxy());
         return options;
     }
 
