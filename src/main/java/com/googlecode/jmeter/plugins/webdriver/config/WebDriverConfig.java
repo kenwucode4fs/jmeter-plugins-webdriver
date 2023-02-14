@@ -289,12 +289,14 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected ChromeOptions createChromeOptions() {
         ChromeOptions options = new ChromeOptions();
 
-        // Custom Chrome capabilities
-        // Arguments
-        if (isBrowserMaximized()) {
-            options.addArguments("--start-maximized");
-        }
-        options.setHeadless(isHeadless());
+		// Custom Chrome capabilities
+		// Arguments
+		if (isBrowserMaximized()) {
+			options.addArguments("--start-maximized");
+		}
+		if (isHeadless()) {
+			options.addArguments("--headless=new");
+		}
 
         String additionalArgs = trimmed(getChromeAdditionalArgs());
         if (null != additionalArgs && !additionalArgs.isEmpty()) {
@@ -317,12 +319,14 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected EdgeOptions createEdgeOptions() {
         EdgeOptions options = new EdgeOptions();
 
-        // Custom Edge capabilities
-        // Arguments
-        if (isBrowserMaximized()) {
-            options.addArguments("--start-maximized");
-        }
-        options.setHeadless(isHeadless());
+		// Custom Edge capabilities
+		// Arguments
+		if (isBrowserMaximized()) {
+			options.addArguments("--start-maximized");
+		}
+		if (isHeadless()) {
+			options.addArguments("--headless=new");
+		}
 
         String additionalArgs = trimmed(getEdgeAdditionalArgs());
         if (null != additionalArgs && !additionalArgs.isEmpty()) {
@@ -349,8 +353,10 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected FirefoxOptions createFirefoxOptions() {
         FirefoxOptions options = new FirefoxOptions();
 
-        // Custom Firefox capabilities
-        options.setHeadless(isHeadless());
+		// Custom Firefox capabilities
+		if (isHeadless()) {
+			options.addArguments("--headless");
+		}
         options.setProfile(createProfile());
         // 忽略与证书相关的错误
         options.addArguments("--ignore-certificate-errors");
