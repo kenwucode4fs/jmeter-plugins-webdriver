@@ -2,12 +2,10 @@ package com.googlecode.jmeter.plugins.webdriver.config;
 
 public class CustomBrowserConfig {
     private String browserLanguage;
-    private boolean headless;
     private boolean acceptInSecureCert = true;
 
-    private CustomBrowserConfig(Builder builder){
+    private CustomBrowserConfig(Builder builder) {
         this.browserLanguage = builder.getBrowserLanguage();
-        this.headless = builder.isHeadless();
         this.acceptInSecureCert = builder.acceptInSecureCert();
     }
 
@@ -17,14 +15,6 @@ public class CustomBrowserConfig {
 
     public void setBrowserLanguage(String browserLanguage) {
         this.browserLanguage = browserLanguage;
-    }
-
-    public boolean isHeadless() {
-        return headless;
-    }
-
-    public void setHeadless(boolean headless) {
-        this.headless = headless;
     }
 
     public boolean isAcceptInSecureCert() {
@@ -37,10 +27,9 @@ public class CustomBrowserConfig {
 
     public static class Builder {
         private String browserLanguage;
-        private boolean headless;
         private boolean acceptInSecureCert = true;
 
-        public Builder(){
+        public Builder() {
         }
 
         public String getBrowserLanguage() {
@@ -52,21 +41,12 @@ public class CustomBrowserConfig {
             return this;
         }
 
-        public boolean isHeadless() {
-            return headless;
-        }
-
-        public Builder setHeadless(boolean headless) {
-            this.headless = headless;
-            return this;
-        }
-
         public Builder setAcceptInSecureCery(boolean acceptInSecureCert) {
             this.acceptInSecureCert = acceptInSecureCert;
             return this;
         }
 
-        public CustomBrowserConfig build(){
+        public CustomBrowserConfig build() {
             return new CustomBrowserConfig(this);
         }
 

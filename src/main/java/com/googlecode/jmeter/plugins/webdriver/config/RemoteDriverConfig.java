@@ -1,14 +1,14 @@
 package com.googlecode.jmeter.plugins.webdriver.config;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.remote.AbstractDriverOptions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
 
@@ -39,7 +39,6 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
         AbstractDriverOptions<?> caps = null;
         CustomBrowserConfig browserConfig = new CustomBrowserConfig.Builder()
                 .setBrowserLanguage(getBrowserLanguage())
-                .setHeadless(isHeadless())
                 .build();
         switch (getCapability()) {
             case CHROME:
