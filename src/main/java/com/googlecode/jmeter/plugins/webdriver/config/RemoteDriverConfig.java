@@ -19,7 +19,6 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
     private static final String REMOTE_CAPABILITY = "RemoteDriverConfig.general.selenium.capability";
     private static final String REMOTE_SELENIUM_GRID_URL = "RemoteDriverConfig.general.selenium.grid.url";
     private static final String BROWSER_LANGUAGE = "RemoteDriverConfig.browser.language";
-    private static final String HEADLESS = "RemoteDriverConfig.browser.headless";
 
     @Override
     protected RemoteWebDriver createBrowser() {
@@ -92,14 +91,4 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
     public String getBrowserLanguage() {
         return getPropertyAsString(BROWSER_LANGUAGE, "zh-CN");
     }
-
-    public void setHeadless(boolean headless) {
-        setProperty(HEADLESS, headless);
-    }
-
-    public boolean isHeadless() {
-        //默认非headless
-        return getPropertyAsBoolean(HEADLESS, false);
-    }
-
 }
