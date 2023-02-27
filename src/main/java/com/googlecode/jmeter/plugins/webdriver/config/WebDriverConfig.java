@@ -282,6 +282,8 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
         options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.addArguments("--enable-logging --v=1");
+        // 忽略与证书相关的错误
+        options.addArguments("--ignore-certificate-errors");
         return options;
     }
 
@@ -307,8 +309,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         if (null != binaryPath && !binaryPath.isEmpty()) {
             options.setBinary(binaryPath);
         }
-        // 忽略与证书相关的错误
-        options.addArguments("--ignore-certificate-errors");
+
         // Capabilities shared by all browsers
         setSharedCaps(options);
 
@@ -357,8 +358,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
 			options.addArguments("--headless");
 		}
         options.setProfile(createProfile());
-        // 忽略与证书相关的错误
-        options.addArguments("--ignore-certificate-errors");
+
         // Capabilities shared by all browsers
         setSharedCaps(options);
 
@@ -367,12 +367,14 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
 
     protected FirefoxOptions createFirefoxOptions(CustomBrowserConfig customBrowserConfig) {
         FirefoxOptions options = createFirefoxOptions();
-        FirefoxProfile profile = new FirefoxProfile();
+        FirefoxProfile profile = options.getProfile();
         profile.setPreference("intl.accept_languages", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN"));
         options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
         options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.setProfile(profile);
         options.setProxy(ProxyFactory.getInstance().getDirectProxy());
+        // 忽略与证书相关的错误
+        options.addArguments("--ignore-certificate-errors");
         return options;
     }
 
