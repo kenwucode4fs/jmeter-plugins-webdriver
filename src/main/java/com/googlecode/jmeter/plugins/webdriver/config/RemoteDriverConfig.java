@@ -40,6 +40,7 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
         CustomBrowserConfig browserConfig = new CustomBrowserConfig.Builder()
                 .setBrowserLanguage(getBrowserLanguage())
                 .build();
+        setAcceptInsecureCerts(true);
         switch (getCapability()) {
             case CHROME:
                 caps = createChromeOptions(browserConfig);

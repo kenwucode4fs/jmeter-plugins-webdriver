@@ -280,7 +280,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         prefs.put("intl.accept_languages", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN"));
         options.setExperimentalOption("prefs", prefs);
         options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
-        options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.addArguments("--enable-logging --v=1");
         // 忽略与证书相关的错误
         options.addArguments("--ignore-certificate-errors");
@@ -370,9 +369,7 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         FirefoxProfile profile = options.getProfile();
         profile.setPreference("intl.accept_languages", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN"));
         options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
-        options.setAcceptInsecureCerts(customBrowserConfig.isAcceptInSecureCert());
         options.setProfile(profile);
-        options.setProxy(ProxyFactory.getInstance().getDirectProxy());
         // 忽略与证书相关的错误
         options.addArguments("--ignore-certificate-errors");
         return options;
