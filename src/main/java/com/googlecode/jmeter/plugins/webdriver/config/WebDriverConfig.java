@@ -3,7 +3,6 @@ package com.googlecode.jmeter.plugins.webdriver.config;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -274,18 +273,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         }
     }
 
-    protected ChromeOptions createChromeOptions(CustomBrowserConfig customBrowserConfig) {
-        ChromeOptions options = createChromeOptions();
-        Map<String, Object> prefs = new HashMap<>();
-        prefs.put("intl.accept_languages", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN"));
-        options.setExperimentalOption("prefs", prefs);
-        options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
-        options.addArguments("--enable-logging --v=1");
-        // 忽略与证书相关的错误
-        options.addArguments("--ignore-certificate-errors");
-        return options;
-    }
-
     protected ChromeOptions createChromeOptions() {
         ChromeOptions options = new ChromeOptions();
 
@@ -344,11 +331,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         return options;
     }
 
-    protected EdgeOptions createEdgeOptions(CustomBrowserConfig customBrowserConfig) {
-        EdgeOptions options = createEdgeOptions();
-        return options;
-    }
-
     protected FirefoxOptions createFirefoxOptions() {
         FirefoxOptions options = new FirefoxOptions();
 
@@ -361,17 +343,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         // Capabilities shared by all browsers
         setSharedCaps(options);
 
-        return options;
-    }
-
-    protected FirefoxOptions createFirefoxOptions(CustomBrowserConfig customBrowserConfig) {
-        FirefoxOptions options = createFirefoxOptions();
-        FirefoxProfile profile = options.getProfile();
-        profile.setPreference("intl.accept_languages", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN"));
-        options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(customBrowserConfig.getBrowserLanguage(), "zh-CN")));
-        options.setProfile(profile);
-        // 忽略与证书相关的错误
-        options.addArguments("--ignore-certificate-errors");
         return options;
     }
 
@@ -456,11 +427,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
         // Capabilities shared by all browsers
         setSharedCaps(options);
 
-        return options;
-    }
-
-    InternetExplorerOptions createIEOptions(CustomBrowserConfig customBrowserConfig) {
-        InternetExplorerOptions options = createIEOptions();
         return options;
     }
 

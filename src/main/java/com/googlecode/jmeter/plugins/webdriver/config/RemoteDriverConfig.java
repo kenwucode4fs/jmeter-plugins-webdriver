@@ -1,6 +1,10 @@
 package com.googlecode.jmeter.plugins.webdriver.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.remote.AbstractDriverOptions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -9,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
 
@@ -37,22 +43,20 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
     Capabilities createCapabilities() {
         // We pass the browser option instance to the remote so it knows which browser to use
         AbstractDriverOptions<?> caps = null;
-        CustomBrowserConfig browserConfig = new CustomBrowserConfig.Builder()
-                .setBrowserLanguage(getBrowserLanguage())
-                .build();
+
         setAcceptInsecureCerts(true);
         switch (getCapability()) {
             case CHROME:
-                caps = createChromeOptions(browserConfig);
+                caps = createChromeOptions();
                 break;
             case EDGE:
-                caps = createEdgeOptions(browserConfig);
+                caps = createEdgeOptions();
                 break;
             case FIREFOX:
-                caps = createFirefoxOptions(browserConfig);
+                caps = createFirefoxOptions();
                 break;
             case INTERNET_EXPLORER:
-                caps = createIEOptions(browserConfig);
+                caps = createIEOptions();
                 break;
             default:
                 throw new IllegalArgumentException("No such capability");
@@ -91,4 +95,28 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
     public String getBrowserLanguage() {
         return getPropertyAsString(BROWSER_LANGUAGE, "zh-CN");
     }
+
+    protected ChromeOptions createChromeOptions() {
+        ChromeOptions options = super.createChromeOptions();
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("intl.accept_languages", StringUtils.defaultIfBlank(getBrowserLanguage(), "zh-CN"));
+        options.setExperimentalOption("prefs", prefs);
+        options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(getBrowserLanguage(), "zh-CN")));
+        options.addArguments("--enable-logging --v=1");
+        // 忽略与证书相关的错误
+        options.addArguments("--ignore-certificate-errors");
+        return options;
+    }
+
+    protected FirefoxOptions createFirefoxOptions() {
+        FirefoxOptions options = super.createFirefoxOptions();
+        FirefoxProfile profile = options.getProfile();
+        profile.setPreference("intl.accept_languages", StringUtils.defaultIfBlank(getBrowserLanguage(), "zh-CN"));
+        options.addArguments(String.format("--lang=%s", StringUtils.defaultIfBlank(getBrowserLanguage(), "zh-CN")));
+        options.setProfile(profile);
+        // 忽略与证书相关的错误
+        options.addArguments("--ignore-certificate-errors");
+        return options;
+    }
+
 }
