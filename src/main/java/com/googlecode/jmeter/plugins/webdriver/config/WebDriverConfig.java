@@ -103,40 +103,32 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     // be interested in leveraging the WebDriver instance can get a handle to it
     // without too much trouble.
     private static final Map<String, WebDriver> webdrivers = new ConcurrentHashMap<String, WebDriver>();
-
     Map<String, WebDriver> getThreadBrowsers() {
         return webdrivers;
     }
-
     void clearThreadBrowsers() {
         webdrivers.clear();
     }
-
     protected T getThreadBrowser() {
         return (T) webdrivers.get(currentThreadName());
     }
-
     protected T removeThreadBrowser() {
         return (T) webdrivers.remove(currentThreadName());
     }
 
 
     private static String browserName;
-
     public static void setBrowserName(String name) {
         browserName = name;
     }
-
     public static String getBrowserName() {
         return browserName;
     }
 
     private final transient ProxyFactory proxyFactory;
-
     protected WebDriverConfig() {
         this(ProxyFactory.getInstance());
     }
-
     protected WebDriverConfig(ProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;
     }
@@ -276,14 +268,14 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected ChromeOptions createChromeOptions() {
         ChromeOptions options = new ChromeOptions();
 
-		// Custom Chrome capabilities
-		// Arguments
-		if (isBrowserMaximized()) {
-			options.addArguments("--start-maximized");
-		}
-		if (isHeadless()) {
-			options.addArguments("--headless=new");
-		}
+        // Custom Chrome capabilities
+        // Arguments
+        if (isBrowserMaximized()) {
+            options.addArguments("--start-maximized");
+        }
+        if (isHeadless()) {
+            options.addArguments("--headless=new");
+        }
 
         String additionalArgs = trimmed(getChromeAdditionalArgs());
         if (null != additionalArgs && !additionalArgs.isEmpty()) {
@@ -305,14 +297,14 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected EdgeOptions createEdgeOptions() {
         EdgeOptions options = new EdgeOptions();
 
-		// Custom Edge capabilities
-		// Arguments
-		if (isBrowserMaximized()) {
-			options.addArguments("--start-maximized");
-		}
-		if (isHeadless()) {
-			options.addArguments("--headless=new");
-		}
+        // Custom Edge capabilities
+        // Arguments
+        if (isBrowserMaximized()) {
+            options.addArguments("--start-maximized");
+        }
+        if (isHeadless()) {
+            options.addArguments("--headless=new");
+        }
 
         String additionalArgs = trimmed(getEdgeAdditionalArgs());
         if (null != additionalArgs && !additionalArgs.isEmpty()) {
@@ -334,10 +326,10 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     protected FirefoxOptions createFirefoxOptions() {
         FirefoxOptions options = new FirefoxOptions();
 
-		// Custom Firefox capabilities
-		if (isHeadless()) {
-			options.addArguments("--headless");
-		}
+        // Custom Firefox capabilities
+        if (isHeadless()) {
+            options.addArguments("--headless");
+        }
         options.setProfile(createProfile());
 
         // Capabilities shared by all browsers
@@ -439,7 +431,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getChromeBinaryPath() {
         return getPropertyAsString(CHROME_BINARY_PATH);
     }
-
     public void setChromeBinaryPath(String binaryPath) {
         setProperty(CHROME_BINARY_PATH, binaryPath);
     }
@@ -447,7 +438,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getEdgeBinaryPath() {
         return getPropertyAsString(EDGE_BINARY_PATH);
     }
-
     public void setEdgeBinaryPath(String binaryPath) {
         setProperty(EDGE_BINARY_PATH, binaryPath);
     }
@@ -455,7 +445,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getDriverPath() {
         return getPropertyAsString(DRIVER_PATH);
     }
-
     public void setDriverPath(String path) {
         setProperty(DRIVER_PATH, path);
     }
@@ -463,7 +452,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getChromeAdditionalArgs() {
         return getPropertyAsString(CHROME_ADDITIONAL_ARGS);
     }
-
     public void setChromeAdditionalArgs(String additionalArgs) {
         setProperty(CHROME_ADDITIONAL_ARGS, additionalArgs);
     }
@@ -471,7 +459,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getEdgeAdditionalArgs() {
         return getPropertyAsString(EDGE_ADDITIONAL_ARGS);
     }
-
     public void setEdgeAdditionalArgs(String additionalArgs) {
         setProperty(EDGE_ADDITIONAL_ARGS, additionalArgs);
     }
@@ -479,7 +466,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getFtpHost() {
         return getPropertyAsString(FTP_HOST);
     }
-
     public void setFtpHost(String host) {
         setProperty(FTP_HOST, host);
     }
@@ -487,7 +473,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public int getFtpPort() {
         return getPropertyAsInt(FTP_PORT);
     }
-
     public void setFtpPort(int port) {
         setProperty(FTP_PORT, port);
     }
@@ -495,7 +480,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getHttpHost() {
         return getPropertyAsString(HTTP_HOST);
     }
-
     public void setHttpHost(String host) {
         setProperty(HTTP_HOST, host);
     }
@@ -503,7 +487,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public int getHttpPort() {
         return getPropertyAsInt(HTTP_PORT);
     }
-
     public void setHttpPort(int port) {
         setProperty(HTTP_PORT, port);
     }
@@ -511,7 +494,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getHttpsHost() {
         return getPropertyAsString(HTTPS_HOST);
     }
-
     public void setHttpsHost(String httpsHost) {
         setProperty(HTTPS_HOST, httpsHost);
     }
@@ -519,7 +501,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public int getHttpsPort() {
         return getPropertyAsInt(HTTPS_PORT);
     }
-
     public void setHttpsPort(int port) {
         setProperty(HTTPS_PORT, port);
     }
@@ -527,7 +508,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getNoProxyHost() {
         return getPropertyAsString(NO_PROXY);
     }
-
     public void setNoProxyHost(String noProxyHostList) {
         setProperty(NO_PROXY, noProxyHostList);
     }
@@ -535,7 +515,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getProxyPacUrl() {
         return getPropertyAsString(PROXY_PAC_URL);
     }
-
     public void setProxyPacUrl(String pacUrl) {
         setProperty(PROXY_PAC_URL, pacUrl);
     }
@@ -543,7 +522,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public ProxyType getProxyType() {
         return ProxyType.valueOf(getPropertyAsString(PROXY_TYPE, ProxyType.SYSTEM.name()));
     }
-
     public void setProxyType(ProxyType type) {
         setProperty(PROXY_TYPE, type.name());
     }
@@ -551,7 +529,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getSocksHost() {
         return getPropertyAsString(SOCKS_HOST);
     }
-
     public void setSocksHost(String host) {
         setProperty(SOCKS_HOST, host);
     }
@@ -559,7 +536,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public int getSocksPort() {
         return getPropertyAsInt(SOCKS_PORT);
     }
-
     public void setSocksPort(int port) {
         setProperty(SOCKS_PORT, port);
     }
@@ -567,7 +543,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isAcceptInsecureCerts() {
         return getPropertyAsBoolean(ACCEPT_INSECURE_CERTS);
     }
-
     public void setAcceptInsecureCerts(boolean enabled) {
         setProperty(ACCEPT_INSECURE_CERTS, enabled);
     }
@@ -575,7 +550,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isUseHttpSettingsForAllProtocols() {
         return getPropertyAsBoolean(USE_HTTP_FOR_ALL_PROTOCOLS, true);
     }
-
     public void setUseHttpSettingsForAllProtocols(boolean override) {
         setProperty(USE_HTTP_FOR_ALL_PROTOCOLS, override);
     }
@@ -583,7 +557,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isHeadless() {
         return getPropertyAsBoolean(ENABLE_HEADLESS);
     }
-
     public void setHeadless(boolean headless) {
         setProperty(ENABLE_HEADLESS, headless);
     }
@@ -591,7 +564,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isBrowserMaximized() {
         return getPropertyAsBoolean(MAXIMIZE_WINDOW, false);
     }
-
     public void setBrowserMaximized(boolean state) {
         setProperty(MAXIMIZE_WINDOW, state);
     }
@@ -599,7 +571,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isDevMode() {
         return getPropertyAsBoolean(DEV_MODE);
     }
-
     public void setDevMode(boolean devMode) {
         setProperty(DEV_MODE, devMode);
     }
@@ -607,7 +578,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isRecreateBrowserOnIterationStart() {
         return getPropertyAsBoolean(RECREATE_ON_ITERATION_START);
     }
-
     public void setRecreateBrowserOnIterationStart(boolean recreate) {
         setProperty(RECREATE_ON_ITERATION_START, recreate);
     }
@@ -615,7 +585,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isUserAgentOverridden() {
         return getPropertyAsBoolean(ENABLE_USERAGENT_OVERRIDE);
     }
-
     public void setUserAgentOverridden(boolean userAgentOverridden) {
         setProperty(ENABLE_USERAGENT_OVERRIDE, userAgentOverridden);
     }
@@ -623,7 +592,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getUserAgentOverride() {
         return getPropertyAsString(GENERAL_USERAGENT_OVERRIDE);
     }
-
     public void setUserAgentOverride(String userAgent) {
         setProperty(GENERAL_USERAGENT_OVERRIDE, userAgent);
     }
@@ -631,7 +599,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public JMeterProperty getExtensions() {
         return getProperty(EXTENSIONS_TO_LOAD);
     }
-
     public void setExtensions(PowerTableModel model) {
         CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(model, EXTENSIONS_TO_LOAD);
         setProperty(prop);
@@ -640,7 +607,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getNtlmSetting() {
         return getPropertyAsString(ENABLE_NTML);
     }
-
     public void setNtlmSetting(boolean ntlm) {
         setProperty(ENABLE_NTML, ntlm);
     }
@@ -648,7 +614,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public JMeterProperty getPreferences() {
         return getProperty(PREFERENCES);
     }
-
     public void setPreferences(PowerTableModel model) {
         CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(model, PREFERENCES);
         setProperty(prop);
@@ -657,7 +622,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public void setFileUploadDialogTimeout(int timeout) {
         setProperty(FILE_UPLOAD_DIALOG_TIMEOUT, timeout);
     }
-
     public int getFileUploadDialogTimeout() {
         return getPropertyAsInt(FILE_UPLOAD_DIALOG_TIMEOUT);
     }
@@ -665,7 +629,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isEnsureCleanSession() {
         return getPropertyAsBoolean(ENSURE_CLEAN_SESSION, false);
     }
-
     public void setEnsureCleanSession(boolean state) {
         setProperty(ENSURE_CLEAN_SESSION, state);
     }
@@ -673,7 +636,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isIgnoreProtectedMode() {
         return getPropertyAsBoolean(IGNORE_PROTECTED_MODE, false);
     }
-
     public void setIgnoreProtectedMode(boolean state) {
         setProperty(IGNORE_PROTECTED_MODE, state);
     }
@@ -681,7 +643,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public boolean isSilent() {
         return getPropertyAsBoolean(SILENT, false);
     }
-
     public void setSilent(boolean state) {
         setProperty(SILENT, state);
     }
@@ -689,7 +650,6 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     public String getInitialIeUrl() {
         return getPropertyAsString(INITIAL_IE_URL);
     }
-
     public void setInitialIeUrl(String webUrl) {
         setProperty(INITIAL_IE_URL, webUrl);
     }
@@ -697,5 +657,4 @@ public abstract class WebDriverConfig<T extends WebDriver> extends ConfigTestEle
     private String trimmed(String str) {
         return null == str ? null : str.trim();
     }
-
 }
