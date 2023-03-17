@@ -40,6 +40,14 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
 		}
 	}
 
+	@Override
+	protected RemoteWebDriver removeThreadBrowser() {
+		if (getThreadContext().getVariables() != null) {
+			getThreadContext().getVariables().remove(WebDriverConfig.BROWSER);
+		}
+		return super.removeThreadBrowser();
+	}
+
 	Capabilities createCapabilities() {
         setAcceptInsecureCerts(true);
         // We pass the browser option instance to the remote so it knows which browser to use
