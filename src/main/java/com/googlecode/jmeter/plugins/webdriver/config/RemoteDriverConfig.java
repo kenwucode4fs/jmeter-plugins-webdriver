@@ -48,6 +48,24 @@ public class RemoteDriverConfig extends WebDriverConfig<RemoteWebDriver> {
 		return super.removeThreadBrowser();
 	}
 
+	public void threadStarted() {
+		// don't create new browser if there is one there already
+		if (hasThreadBrowser()) {
+			LOGGER.warn("Thread: " + currentThreadName() + " already has a WebDriver(" + getThreadBrowser()
+					+ ") associated with it. ThreadGroup can only contain a single WebDriverConfig.");
+			return;
+		}
+
+		// create new browser instance
+		final RemoteWebDriver browser = createBrowser();
+		if ((isBrowserMaximized()) && ((getBrowserName() == "firefox") || (getBrowserName() == "internet explorer"))) {
+			browser.manage().window().maximize();
+		}
+		setThreadBrowser(browser);
+		// 这里去除 addHook(browser); 覆盖父类方法
+		// 。。。
+	}
+
 	Capabilities createCapabilities() {
         setAcceptInsecureCerts(true);
         // We pass the browser option instance to the remote so it knows which browser to use
