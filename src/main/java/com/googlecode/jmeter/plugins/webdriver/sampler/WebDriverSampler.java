@@ -120,6 +120,7 @@ public class WebDriverSampler extends AbstractSampler {
             if (res.getEndTime() == 0) {
                 res.sampleEnd();
             }
+            throw new IllegalArgumentException(ex.getMessage());
         }
 
         return res;
