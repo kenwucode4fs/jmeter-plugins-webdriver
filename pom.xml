@@ -4,7 +4,7 @@
 
     <groupId>io.metersphere</groupId>
     <artifactId>jmeter-plugins-webdriver</artifactId>
-    <version>4.8.1</version>
+    <version>4.8.3</version>
     <packaging>jar</packaging>
 
     <name>WebDriver/Selenium</name>
@@ -34,7 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <selenium.version>4.8.1</selenium.version>
+        <selenium.version>4.8.3</selenium.version>
     </properties>
 
     <build>
@@ -127,17 +127,12 @@
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-support</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-remote-driver</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-chrome-driver</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-edge-driver</artifactId>
             <version>${selenium.version}</version>
         </dependency>
         <dependency>
@@ -152,10 +147,19 @@
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>htmlunit-driver</artifactId>
-            <version>4.8.0</version>
+            <artifactId>selenium-remote-driver</artifactId>
+            <version>${selenium.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-support</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>htmlunit-driver</artifactId>
+            <version>4.8.1.1</version>
+        </dependency>
         <!-- begin need this libraries for HtmlUnitDriver -->
         <dependency>
             <groupId>xml-apis</groupId>
@@ -185,8 +189,11 @@
         </dependency>
         -->
         <!-- end need this libraries for HtmlUnitDriver -->
-        <!-- start needed libraries for GhostDriver -->
-        <!-- end needed libraries for GhostDriver -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.14.2</version>
+        </dependency>
         <dependency>
             <groupId>de.sciss</groupId>
             <artifactId>jsyntaxpane</artifactId>
@@ -209,11 +216,6 @@
             <artifactId>powermock-api-mockito2</artifactId>
             <version>2.0.9</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-edge-driver</artifactId>
-            <version>${selenium.version}</version>
         </dependency>
     </dependencies>
     <distributionManagement>

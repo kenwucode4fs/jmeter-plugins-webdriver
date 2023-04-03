@@ -49,7 +49,7 @@ public class RemoteDriverConfigTest {
     public void createConfig() {
         config = new RemoteDriverConfig();
         variables = new JMeterVariables();
-        config.setCapability(RemoteCapability.CHROME);
+        config.setSelectedBrowser(RemoteBrowser.CHROME);
         JMeterContextService.getContext().setVariables(variables);
     }
 
@@ -61,11 +61,11 @@ public class RemoteDriverConfigTest {
     
     @Test
 	public void shouldSetTheCapability() throws Exception {
-		assertThat(config.getCapability(), is(RemoteCapability.CHROME));
-		config.setCapability(RemoteCapability.FIREFOX);
-		assertThat(config.getCapability(), is(RemoteCapability.FIREFOX));
-		config.setCapability(RemoteCapability.INTERNET_EXPLORER);
-		assertThat(config.getCapability(), is(RemoteCapability.INTERNET_EXPLORER));
+		assertThat(config.getSelectedBrowser(), is(RemoteBrowser.CHROME));
+		config.setSelectedBrowser(RemoteBrowser.FIREFOX);
+		assertThat(config.getSelectedBrowser(), is(RemoteBrowser.FIREFOX));
+		config.setSelectedBrowser(RemoteBrowser.INTERNET_EXPLORER);
+		assertThat(config.getSelectedBrowser(), is(RemoteBrowser.INTERNET_EXPLORER));
 	}
 
     @Test
@@ -106,6 +106,13 @@ public class RemoteDriverConfigTest {
     }
 
     @Test
+    public void shouldMergeCustomCapabilities() {
+        config.setCustomCapabilities("{\"myCustomCapability\": \"myCustomValue\"}");
+        final Capabilities capabilities = config.createCapabilities();
+        assertThat(capabilities.getCapability("myCustomCapability"), is("myCustomValue"));
+    }
+
+    @Test
     public void shouldHaveHeadlessInChromeOptionsWhenEnabled() {
         config.setHeadless(true);
         final Capabilities capabilities = config.createCapabilities();
@@ -115,8 +122,9 @@ public class RemoteDriverConfigTest {
 		@SuppressWarnings("unchecked")
 		List<String> args = (List<String>) capability.get("args");
         assertThat(args, is(notNullValue()));
-        assertEquals(1, args.size());
-        assertEquals("--headless=new", args.get(0));
+        assertEquals(2, args.size());
+        assertEquals("--remote-allow-origins=*", args.get(0));
+        assertEquals("--headless=new", args.get(1));
     }
 
     @Test
@@ -129,7 +137,7 @@ public class RemoteDriverConfigTest {
 		@SuppressWarnings("unchecked")
 		List<String> args = (List<String>) capability.get("args");
         assertThat(args, is(notNullValue()));
-        assertEquals(0, args.size());
+        assertEquals(1, args.size());
     }
 
     @Test
