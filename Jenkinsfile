@@ -5,11 +5,14 @@ pipeline {
         }
     }
     options { quietPeriod(600) }
+    environment {
+        JAVA_HOME = '/opt/jdk-17'
+    }
     stages {
         stage('Build/Test') {
             steps {
                 configFileProvider([configFile(fileId: 'metersphere-maven', targetLocation: 'settings.xml')]) {
-                    sh "mvn clean install -Dgpg.skip -DskipTests --settings ./settings.xml"
+                    sh "./mvnw clean install -Dgpg.skip -DskipTests --settings ./settings.xml"
                 }
             }
         }
