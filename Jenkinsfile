@@ -6,7 +6,7 @@ pipeline {
     }
     options { quietPeriod(600) }
     environment {
-        JAVA_HOME = '/opt/jdk-17'
+        JAVA_HOME = '/opt/jdk-8'
     }
     stages {
         stage('Build/Test') {
